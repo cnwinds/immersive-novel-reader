@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git config --global --add safe.directory D:/ai-project)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
