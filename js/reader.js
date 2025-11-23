@@ -10,6 +10,11 @@ class Reader {
         this.touchStartY = 0;
         this.touchEndY = 0;
         
+        // 双击检测相关
+        this.lastTapTime = 0;
+        this.lastTapY = 0;
+        this.doubleTapHandler = null;
+        
         // 异步初始化
         this.init();
     }
@@ -629,33 +634,45 @@ class Reader {
         document.body.appendChild(topExitZone);
         this.fullscreenExitZone = topExitZone;
 
-        // 双击屏幕中央区域退出全屏（避免与滚动冲突）
+        // 双击屏幕退出全屏（优化检测逻辑）
         const readerContent = document.getElementById('readerContent');
-        if (readerContent) {
-            let lastTap = 0;
-            let lastTapY = 0;
+        if (readerContent && !this.doubleTapHandler) {
+            // 重置双击检测状态
+            this.lastTapTime = 0;
+            this.lastTapY = 0;
             
-            readerContent.addEventListener('touchend', (e) => {
-                const currentTime = new Date().getTime();
-                const tapLength = currentTime - lastTap;
+            // 创建双击检测处理函数
+            this.doubleTapHandler = (e) => {
+                const currentTime = Date.now();
+                const timeDiff = currentTime - this.lastTapTime;
                 const tapY = e.changedTouches[0].clientY;
-                const tapYDiff = Math.abs(tapY - lastTapY);
+                const tapYDiff = Math.abs(tapY - this.lastTapY);
                 
-                // 双击检测：300ms内两次点击，且位置相近（避免滚动误触）
-                if (tapLength < 400 && tapLength > 0 && tapYDiff < 50) {
-                    // 检查是否在屏幕中央区域（避免顶部和底部误触）
-                    const viewportHeight = window.innerHeight;
-                    const centerStart = viewportHeight * 0.2;
-                    const centerEnd = viewportHeight * 0.8;
+                // 优化双击检测条件：
+                // 1. 时间窗口：500ms内（更宽松）
+                // 2. 位置差异：100px内（更宽松，适应不同手指大小）
+                // 3. 触发区域：整个屏幕（移除中央区域限制）
+                if (timeDiff > 0 && timeDiff < 500 && tapYDiff < 100) {
+                    // 阻止默认行为和事件冒泡
+                    e.preventDefault();
+                    e.stopPropagation();
                     
-                    if (tapY > centerStart && tapY < centerEnd) {
-                        e.preventDefault();
-                        this.toggleFullscreen();
-                    }
+                    // 退出全屏
+                    this.toggleFullscreen();
+                    
+                    // 重置状态，避免连续触发
+                    this.lastTapTime = 0;
+                    this.lastTapY = 0;
+                    return;
                 }
-                lastTap = currentTime;
-                lastTapY = tapY;
-            }, { passive: false });
+                
+                // 更新最后点击时间和位置
+                this.lastTapTime = currentTime;
+                this.lastTapY = tapY;
+            };
+            
+            // 添加事件监听器（使用 passive: false 以便 preventDefault）
+            readerContent.addEventListener('touchend', this.doubleTapHandler, { passive: false });
         }
     }
 
@@ -663,10 +680,22 @@ class Reader {
      * 移除全屏退出元素
      */
     removeFullscreenExit() {
+        // 移除顶部退出区域
         if (this.fullscreenExitZone) {
             this.fullscreenExitZone.remove();
             this.fullscreenExitZone = null;
         }
+        
+        // 移除双击事件监听器
+        const readerContent = document.getElementById('readerContent');
+        if (readerContent && this.doubleTapHandler) {
+            readerContent.removeEventListener('touchend', this.doubleTapHandler);
+            this.doubleTapHandler = null;
+        }
+        
+        // 重置双击检测状态
+        this.lastTapTime = 0;
+        this.lastTapY = 0;
     }
 
     applySettings() {
