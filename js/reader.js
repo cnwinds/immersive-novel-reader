@@ -259,6 +259,55 @@ class Reader {
     }
 
     /**
+     * 格式化章节标题，将Episode格式转换为"第X章 标题"格式
+     * @param {string} html - 解析后的HTML
+     * @param {string} filename - 文件名
+     * @returns {string} - 格式化后的HTML
+     */
+    formatChapterTitle(html, filename) {
+        // 创建临时DOM元素来操作HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        
+        // 查找h1标签
+        const h1 = tempDiv.querySelector('h1');
+        if (!h1) return html;
+        
+        const originalTitle = h1.textContent.trim();
+        
+        // 匹配 "Episode-XX：标题" 或 "Episode-XX: 标题" 格式
+        const episodeMatch = originalTitle.match(/^Episode-(\d+)[：:]\s*(.+)$/);
+        if (episodeMatch) {
+            const chapterNum = parseInt(episodeMatch[1], 10);
+            const title = episodeMatch[2].trim();
+            
+            // 转换为中文数字
+            const chineseNumbers = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+            let chapterText = '';
+            
+            if (chapterNum <= 0) {
+                chapterText = chapterNum.toString();
+            } else if (chapterNum <= 10) {
+                chapterText = chineseNumbers[chapterNum];
+            } else if (chapterNum < 20) {
+                chapterText = '十' + (chapterNum > 10 ? chineseNumbers[chapterNum % 10] : '');
+            } else if (chapterNum < 100) {
+                const tens = Math.floor(chapterNum / 10);
+                const ones = chapterNum % 10;
+                chapterText = chineseNumbers[tens] + '十' + (ones > 0 ? chineseNumbers[ones] : '');
+            } else {
+                // 超过100章直接使用数字
+                chapterText = chapterNum.toString();
+            }
+            
+            // 创建新的标题HTML，第一章使用角标样式
+            h1.innerHTML = `<span class="chapter-number">第${chapterText}章</span> <span class="chapter-title-text">${title}</span>`;
+        }
+        
+        return tempDiv.innerHTML;
+    }
+
+    /**
      * 过滤markdown内容，移除不需要显示的部分
      * @param {string} markdown - 原始markdown文本
      * @returns {string} - 过滤后的markdown文本
@@ -330,9 +379,12 @@ class Reader {
             markdown = this.filterMarkdown(markdown);
             
             // 使用 marked.parse 或 marked（兼容不同版本）
-            const html = typeof marked.parse === 'function' 
+            let html = typeof marked.parse === 'function' 
                 ? marked.parse(markdown) 
                 : marked(markdown);
+            
+            // 处理标题格式：将 "Episode-01：倒计时90天" 转换为 "第一章 倒计时90天"
+            html = this.formatChapterTitle(html, filename);
             
             if (content) {
                 content.innerHTML = html;

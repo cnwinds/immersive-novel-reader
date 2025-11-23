@@ -1,5 +1,22 @@
 /* CSS变量 - 支持主题切换 */
 :root {
+    /* 默认使用夜间模式 */
+    --bg-primary: #1a1d29;
+    --bg-secondary: #252936;
+    --bg-tertiary: #2d3142;
+    --text-primary: #e4e6eb;
+    --text-secondary: #b0b3b8;
+    --text-muted: #8a8d91;
+    --border-color: #3a3f52;
+    --accent-color: #5c7cfa;
+    --accent-hover: #4263eb;
+    --shadow: rgba(0, 0, 0, 0.3);
+    --shadow-lg: rgba(0, 0, 0, 0.5);
+    --glass-bg: rgba(37, 41, 54, 0.8);
+    --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="light"] {
     /* 日间模式 */
     --bg-primary: #f8f9fa;
     --bg-secondary: #ffffff;
@@ -17,7 +34,7 @@
 }
 
 [data-theme="dark"] {
-    /* 夜间模式 */
+    /* 夜间模式（与默认相同，保持一致性） */
     --bg-primary: #1a1d29;
     --bg-secondary: #252936;
     --bg-tertiary: #2d3142;
@@ -537,11 +554,33 @@ body {
 }
 
 .chapter-content h1 {
-    font-size: 2em;
+    font-size: 1.8em;
     margin-bottom: 20px;
     color: var(--text-primary);
     border-bottom: 2px solid var(--accent-color);
     padding-bottom: 10px;
+    line-height: 1.4;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.chapter-content h1 .chapter-number {
+    font-size: 0.6em;
+    font-weight: 500;
+    color: var(--accent-color);
+    vertical-align: baseline;
+    line-height: 1;
+    padding: 2px 6px;
+    background: rgba(76, 110, 245, 0.1);
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.chapter-content h1 .chapter-title-text {
+    flex: 1;
+    min-width: 0;
 }
 
 .chapter-content h2 {
@@ -728,6 +767,17 @@ body.fullscreen .reader-container {
         padding: 25px 20px;
         font-size: 16px;
     }
+    
+    .chapter-content h1 {
+        font-size: 1.5em;
+        margin-bottom: 15px;
+        padding-bottom: 8px;
+    }
+    
+    .chapter-content h1 .chapter-number {
+        font-size: 0.55em;
+        padding: 2px 5px;
+    }
 
     .reader-footer {
         padding: 0 15px;
@@ -780,6 +830,19 @@ body.fullscreen .reader-container {
 
     .progress-text {
         display: none;
+    }
+    
+    .chapter-content h1 {
+        font-size: 1.3em;
+        margin-bottom: 12px;
+        padding-bottom: 6px;
+        gap: 6px;
+    }
+    
+    .chapter-content h1 .chapter-number {
+        font-size: 0.5em;
+        padding: 1px 4px;
+        border-radius: 3px;
     }
 }
 

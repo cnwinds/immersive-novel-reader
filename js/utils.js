@@ -93,8 +93,8 @@ class Utils {
             fontSize: 18,
             lineHeight: 1.8,
             letterSpacing: 0.5,
-            fontFamily: 'noto-serif',
-            theme: 'light'
+            fontFamily: 'noto-sans',
+            theme: 'dark'
         };
     }
 
