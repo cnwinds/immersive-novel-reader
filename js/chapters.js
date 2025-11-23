@@ -299,6 +299,8 @@ class ChapterManager {
         const reader = window.reader;
         if (reader) {
             await reader.loadChapter(chapter.file);
+            // 更新章节进度条
+            reader.updateChapterProgress();
         }
         
         // 保存当前章节索引

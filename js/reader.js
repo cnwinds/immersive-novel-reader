@@ -408,10 +408,10 @@ class Reader {
             if (content) {
                 content.innerHTML = html;
                 content.style.display = 'block';
-                
-                // 添加章节进度条（在内容底部）
-                this.addChapterProgress(content);
             }
+            
+            // 更新底部导航栏的章节进度条
+            this.updateChapterProgress();
 
             // 更新导航按钮状态
             this.updateNavButtons();
@@ -443,6 +443,7 @@ class Reader {
             setTimeout(() => {
                 this.updateScrollProgress();
                 this.updateHeaderTitle();
+                this.updateChapterProgress();
             }, 200);
 
         } catch (error) {
@@ -748,16 +749,9 @@ class Reader {
      * 更新标题栏：当章节标题移出屏幕时，在标题栏显示章节信息
      */
     /**
-     * 在章节内容底部添加进度条（显示当前章节数/总章节数）
-     * @param {HTMLElement} content - 章节内容容器
+     * 更新底部导航栏的章节进度条（显示当前章节数/总章节数）
      */
-    addChapterProgress(content) {
-        // 移除已存在的进度条
-        const existingProgress = content.querySelector('.chapter-progress-bar');
-        if (existingProgress) {
-            existingProgress.remove();
-        }
-        
+    updateChapterProgress() {
         // 获取章节信息
         if (!this.chapterManager || !this.chapterManager.chapters.length) {
             return;
@@ -767,16 +761,17 @@ class Reader {
         const currentChapter = this.chapterManager.currentIndex + 1; // 从1开始计数
         const progress = (currentChapter / totalChapters) * 100;
         
-        // 创建进度条容器
-        const progressBar = document.createElement('div');
-        progressBar.className = 'chapter-progress-bar';
-        progressBar.innerHTML = `
-            <div class="chapter-progress-fill" style="width: ${progress}%"></div>
-            <div class="chapter-progress-text">${currentChapter} / ${totalChapters}</div>
-        `;
+        // 更新底部导航栏的进度条
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
         
-        // 将进度条添加到内容底部
-        content.appendChild(progressBar);
+        if (progressFill) {
+            progressFill.style.width = `${progress}%`;
+        }
+        
+        if (progressText) {
+            progressText.textContent = `${currentChapter} / ${totalChapters}`;
+        }
     }
 
     updateHeaderTitle() {
