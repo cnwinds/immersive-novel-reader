@@ -21,27 +21,36 @@
 <body>
     <!-- 顶部导航栏 -->
     <header class="reader-header">
-        <div class="header-left">
-            <button class="menu-toggle" id="menuToggle" aria-label="打开章节列表">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 12h18M3 6h18M3 18h18"/>
-                </svg>
-            </button>
-            <h1 class="book-title">末世黎明</h1>
+        <div class="header-content">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle" aria-label="打开章节列表">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12h18M3 6h18M3 18h18"/>
+                    </svg>
+                </button>
+                <h1 class="book-title">末世黎明</h1>
+            </div>
+            <div class="header-right">
+                <button class="search-btn" id="searchBtn" aria-label="搜索">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                </button>
+                <button class="settings-btn" id="settingsBtn" aria-label="设置">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3"/>
+                    </svg>
+                </button>
+            </div>
         </div>
-        <div class="header-right">
-            <button class="search-btn" id="searchBtn" aria-label="搜索">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8"/>
-                    <path d="m21 21-4.35-4.35"/>
-                </svg>
-            </button>
-            <button class="settings-btn" id="settingsBtn" aria-label="设置">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="3"/>
-                    <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3"/>
-                </svg>
-            </button>
+        <!-- 章节进度条（整体进度） -->
+        <div class="header-chapter-progress">
+            <div class="header-progress-bar">
+                <div class="header-progress-fill" id="headerProgressFill"></div>
+            </div>
+            <span class="header-progress-text" id="headerProgressText">0 / 0</span>
         </div>
     </header>
 

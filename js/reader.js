@@ -749,7 +749,7 @@ class Reader {
      * 更新标题栏：当章节标题移出屏幕时，在标题栏显示章节信息
      */
     /**
-     * 更新底部导航栏的章节进度条（显示当前章节数/总章节数）
+     * 更新顶部导航栏的章节进度条（显示当前章节数/总章节数 - 整体进度）
      */
     updateChapterProgress() {
         // 获取章节信息
@@ -761,16 +761,16 @@ class Reader {
         const currentChapter = this.chapterManager.currentIndex + 1; // 从1开始计数
         const progress = (currentChapter / totalChapters) * 100;
         
-        // 更新底部导航栏的进度条
-        const progressFill = document.getElementById('progressFill');
-        const progressText = document.getElementById('progressText');
+        // 更新顶部导航栏的章节进度条
+        const headerProgressFill = document.getElementById('headerProgressFill');
+        const headerProgressText = document.getElementById('headerProgressText');
         
-        if (progressFill) {
-            progressFill.style.width = `${progress}%`;
+        if (headerProgressFill) {
+            headerProgressFill.style.width = `${progress}%`;
         }
         
-        if (progressText) {
-            progressText.textContent = `${currentChapter} / ${totalChapters}`;
+        if (headerProgressText) {
+            headerProgressText.textContent = `${currentChapter} / ${totalChapters}`;
         }
     }
 
