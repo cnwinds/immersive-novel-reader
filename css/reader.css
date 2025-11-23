@@ -157,18 +157,16 @@ body::-webkit-scrollbar-thumb:hover {
     right: 0;
     height: 3px;
     box-sizing: border-box;
-    display: flex;
-    justify-content: center;
 }
 
 .header-progress-bar {
     max-width: 800px;
-    width: 100%;
+    width: calc(100% - 40px);
     height: 3px;
     background: var(--bg-tertiary);
     border-radius: 2px;
     overflow: hidden;
-    margin: 0 20px;
+    margin: 0 auto;
     box-sizing: border-box;
 }
 
