@@ -241,7 +241,7 @@ class ChapterManager {
             const index = parseInt(savedIndex);
             if (index >= 0 && index < this.chapters.length) {
                 this.currentIndex = index;
-            }
+        }
         }
         
         // 渲染章节列表（在设置 currentIndex 之后）
@@ -303,6 +303,16 @@ class ChapterManager {
         
         // 保存当前章节索引
         localStorage.setItem('currentChapterIndex', index.toString());
+        
+        // 关闭章节列表侧边栏
+        const sidebar = document.getElementById('chapterSidebar');
+        const overlay = document.getElementById('overlay');
+        if (sidebar && sidebar.classList.contains('active')) {
+            sidebar.classList.remove('active');
+            if (overlay) {
+                overlay.classList.remove('active');
+            }
+        }
     }
 
     getCurrentChapter() {
