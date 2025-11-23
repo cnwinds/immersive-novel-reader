@@ -7,6 +7,8 @@ class Reader {
         this.isFullscreen = false;
         this.touchStartX = 0;
         this.touchEndX = 0;
+        this.touchStartY = 0;
+        this.touchEndY = 0;
         
         // 异步初始化
         this.init();
@@ -141,10 +143,11 @@ class Reader {
             this.handleKeyboard(e);
         });
 
-        // 滚动监听（更新进度）
+        // 滚动监听（更新进度和标题）
         // 监听整个页面的滚动事件
         window.addEventListener('scroll', this.utils.throttle(() => {
             this.updateScrollProgress();
+            this.updateHeaderTitle();
         }, 100));
         
         // 也监听 readerContent 的滚动（如果它有自己的滚动）
@@ -152,6 +155,7 @@ class Reader {
         if (readerContent) {
             readerContent.addEventListener('scroll', this.utils.throttle(() => {
                 this.updateScrollProgress();
+                this.updateHeaderTitle();
             }, 100));
         }
 
@@ -170,25 +174,41 @@ class Reader {
 
         readerContent.addEventListener('touchstart', (e) => {
             this.touchStartX = e.touches[0].clientX;
+            this.touchStartY = e.touches[0].clientY;
         }, { passive: true });
 
         readerContent.addEventListener('touchend', (e) => {
             this.touchEndX = e.changedTouches[0].clientX;
+            this.touchEndY = e.changedTouches[0].clientY;
             this.handleSwipe();
         }, { passive: true });
     }
 
     handleSwipe() {
-        const swipeThreshold = 50;
-        const diff = this.touchStartX - this.touchEndX;
-
-        if (Math.abs(diff) > swipeThreshold) {
-            if (diff > 0) {
-                // 向左滑动 - 下一章
-                this.chapterManager.next();
-            } else {
-                // 向右滑动 - 上一章
-                this.chapterManager.prev();
+        const horizontalDiff = this.touchStartX - this.touchEndX;
+        const verticalDiff = this.touchStartY - this.touchEndY;
+        
+        // 水平滑动的最小阈值（增加以避免误触）
+        const horizontalThreshold = 80;
+        // 垂直滑动阈值（如果垂直滑动超过这个值，认为是滚动而不是切换章节）
+        const verticalThreshold = 30;
+        
+        // 计算滑动的水平距离和垂直距离
+        const horizontalDistance = Math.abs(horizontalDiff);
+        const verticalDistance = Math.abs(verticalDiff);
+        
+        // 只有当水平滑动距离足够大，且垂直滑动距离较小（或水平滑动明显大于垂直滑动）时才切换章节
+        // 这样可以避免在上下滚动时误触章节切换
+        if (horizontalDistance > horizontalThreshold) {
+            // 如果垂直滑动距离小于阈值，或者水平滑动明显大于垂直滑动（2倍以上），才认为是切换章节
+            if (verticalDistance < verticalThreshold || horizontalDistance > verticalDistance * 2) {
+                if (horizontalDiff > 0) {
+                    // 向左滑动 - 下一章
+                    this.chapterManager.next();
+                } else {
+                    // 向右滑动 - 上一章
+                    this.chapterManager.prev();
+                }
             }
         }
     }
@@ -207,11 +227,25 @@ class Reader {
         // 全屏模式下不响应其他快捷键
         if (this.isFullscreen) return;
 
-        // 方向键导航
-        if (e.key === 'ArrowLeft' && !e.ctrlKey && !e.metaKey) {
-            this.chapterManager.prev();
-        } else if (e.key === 'ArrowRight' && !e.ctrlKey && !e.metaKey) {
-            this.chapterManager.next();
+        // 左右方向键切换章节（优先于其他操作）
+        // 只有在输入框、文本区域等元素没有焦点时才响应
+        const activeElement = document.activeElement;
+        const isInputFocused = activeElement && (
+            activeElement.tagName === 'INPUT' || 
+            activeElement.tagName === 'TEXTAREA' ||
+            activeElement.isContentEditable
+        );
+
+        if (!isInputFocused) {
+            if (e.key === 'ArrowLeft' && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+                e.preventDefault();
+                this.chapterManager.prev();
+                return;
+            } else if (e.key === 'ArrowRight' && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+                e.preventDefault();
+                this.chapterManager.next();
+                return;
+            }
         }
 
         // Ctrl/Cmd + F 搜索
@@ -378,6 +412,13 @@ class Reader {
             // 更新导航按钮状态
             this.updateNavButtons();
             
+            // 重置标题（章节加载后，标题在视口中，显示默认标题）
+            const bookTitle = document.querySelector('.book-title');
+            if (bookTitle) {
+                bookTitle.textContent = '末世黎明';
+            }
+            document.title = '末世黎明 - 沉浸式阅读器';
+            
             // 更新章节列表的选中状态（确保同步）
             if (this.chapterManager) {
                 // 根据文件名找到对应的章节索引
@@ -394,9 +435,10 @@ class Reader {
                 readerContent.scrollTop = 0;
             }
             
-            // 初始化进度（等待内容渲染完成）
+            // 初始化进度和标题（等待内容渲染完成）
             setTimeout(() => {
                 this.updateScrollProgress();
+                this.updateHeaderTitle();
             }, 200);
 
         } catch (error) {
@@ -562,6 +604,69 @@ class Reader {
     toggleFullscreen() {
         this.isFullscreen = !this.isFullscreen;
         document.body.classList.toggle('fullscreen', this.isFullscreen);
+        
+        // 切换全屏时，确保关闭所有面板和遮罩层
+        if (this.isFullscreen) {
+            this.closeAllPanels();
+            this.setupFullscreenExit();
+        } else {
+            this.removeFullscreenExit();
+        }
+    }
+
+    /**
+     * 设置全屏模式的退出方式（移动端友好）
+     */
+    setupFullscreenExit() {
+        // 创建顶部退出区域（点击顶部退出全屏）
+        const topExitZone = document.createElement('div');
+        topExitZone.className = 'fullscreen-exit-zone';
+        topExitZone.innerHTML = '<span class="exit-hint">点击退出全屏</span>';
+        topExitZone.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleFullscreen();
+        });
+        document.body.appendChild(topExitZone);
+        this.fullscreenExitZone = topExitZone;
+
+        // 双击屏幕中央区域退出全屏（避免与滚动冲突）
+        const readerContent = document.getElementById('readerContent');
+        if (readerContent) {
+            let lastTap = 0;
+            let lastTapY = 0;
+            
+            readerContent.addEventListener('touchend', (e) => {
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTap;
+                const tapY = e.changedTouches[0].clientY;
+                const tapYDiff = Math.abs(tapY - lastTapY);
+                
+                // 双击检测：300ms内两次点击，且位置相近（避免滚动误触）
+                if (tapLength < 400 && tapLength > 0 && tapYDiff < 50) {
+                    // 检查是否在屏幕中央区域（避免顶部和底部误触）
+                    const viewportHeight = window.innerHeight;
+                    const centerStart = viewportHeight * 0.2;
+                    const centerEnd = viewportHeight * 0.8;
+                    
+                    if (tapY > centerStart && tapY < centerEnd) {
+                        e.preventDefault();
+                        this.toggleFullscreen();
+                    }
+                }
+                lastTap = currentTime;
+                lastTapY = tapY;
+            }, { passive: false });
+        }
+    }
+
+    /**
+     * 移除全屏退出元素
+     */
+    removeFullscreenExit() {
+        if (this.fullscreenExitZone) {
+            this.fullscreenExitZone.remove();
+            this.fullscreenExitZone = null;
+        }
     }
 
     applySettings() {
@@ -608,6 +713,52 @@ class Reader {
                 this.chapterManager.currentIndex,
                 scrollTop
             );
+        }
+    }
+
+    /**
+     * 更新标题栏：当章节标题移出屏幕时，在标题栏显示章节信息
+     */
+    updateHeaderTitle() {
+        const chapterContent = document.getElementById('chapterContent');
+        if (!chapterContent) return;
+
+        const h1 = chapterContent.querySelector('h1');
+        if (!h1) return;
+
+        const bookTitle = document.querySelector('.book-title');
+        if (!bookTitle) return;
+
+        // 获取章节标题的位置信息
+        const h1Rect = h1.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        
+        // 判断章节标题是否在视口中（考虑顶部导航栏的高度60px）
+        const isTitleVisible = h1Rect.top >= 60 && h1Rect.bottom <= viewportHeight;
+
+        // 如果标题不在视口中，显示章节信息
+        if (!isTitleVisible && h1Rect.top < 60) {
+            // 标题已经滚动出屏幕上方
+            const chapterNumber = h1.querySelector('.chapter-number');
+            const chapterTitleText = h1.querySelector('.chapter-title-text');
+            
+            if (chapterNumber && chapterTitleText) {
+                const chapterInfo = `${chapterNumber.textContent} ${chapterTitleText.textContent}`;
+                bookTitle.textContent = `末世黎明 - ${chapterInfo}`;
+                // 同时更新页面标题
+                document.title = `${chapterInfo} - 末世黎明`;
+            } else {
+                // 如果没有格式化标题，尝试从文本中提取
+                const titleText = h1.textContent.trim();
+                if (titleText) {
+                    bookTitle.textContent = `末世黎明 - ${titleText}`;
+                    document.title = `${titleText} - 末世黎明`;
+                }
+            }
+        } else {
+            // 标题在视口中，恢复默认标题
+            bookTitle.textContent = '末世黎明';
+            document.title = '末世黎明 - 沉浸式阅读器';
         }
     }
 }

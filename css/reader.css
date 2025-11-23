@@ -67,6 +67,26 @@ body {
     line-height: 1.6;
     transition: background-color 0.3s ease, color 0.3s ease;
     overflow-x: hidden;
+    /* 美化滚动条 */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: var(--accent-color) var(--bg-tertiary); /* Firefox */
+}
+
+body::-webkit-scrollbar {
+    width: 8px; /* Chrome, Safari, Opera */
+}
+
+body::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+}
+
+body::-webkit-scrollbar-thumb {
+    background: var(--accent-color);
+    border-radius: 4px;
+}
+
+body::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-hover);
 }
 
 /* 顶部导航栏 */
@@ -99,6 +119,10 @@ body {
     font-weight: 600;
     color: var(--text-primary);
     margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 300px;
 }
 
 .menu-toggle, .search-btn, .settings-btn {
@@ -392,6 +416,26 @@ body {
     z-index: 1001;
     transition: left 0.3s ease;
     overflow-y: auto;
+    /* 美化滚动条 */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: var(--accent-color) var(--bg-tertiary); /* Firefox */
+}
+
+.chapter-sidebar::-webkit-scrollbar {
+    width: 6px; /* Chrome, Safari, Opera */
+}
+
+.chapter-sidebar::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+}
+
+.chapter-sidebar::-webkit-scrollbar-thumb {
+    background: var(--accent-color);
+    border-radius: 3px;
+}
+
+.chapter-sidebar::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-hover);
 }
 
 .chapter-sidebar.active {
@@ -509,11 +553,25 @@ body {
     min-height: calc(100vh - 140px);
     display: flex;
     justify-content: center;
+    /* 隐藏滚动条但保持滚动功能 */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+.reader-container::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
 }
 
 .reader-content {
     width: 100%;
     max-width: 800px;
+    /* 隐藏滚动条但保持滚动功能 */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+.reader-content::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
 }
 
 .loading {
@@ -742,11 +800,87 @@ body.fullscreen .search-panel {
     display: none;
 }
 
+/* 全屏退出提示区域 */
+.fullscreen-exit-zone {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    z-index: 10000;
+    cursor: pointer;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4) 0%, transparent 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    touch-action: none;
+}
+
+.fullscreen-exit-zone:hover,
+.fullscreen-exit-zone:active {
+    opacity: 1;
+}
+
+.fullscreen-exit-zone .exit-hint {
+    color: var(--text-primary);
+    font-size: 13px;
+    padding: 6px 16px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 6px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.fullscreen-exit-zone:hover .exit-hint,
+.fullscreen-exit-zone:active .exit-hint {
+    opacity: 1;
+}
+
+/* 移动端：点击顶部区域时显示提示 */
+@media (max-width: 768px) {
+    .fullscreen-exit-zone {
+        height: 100px;
+    }
+    
+    .fullscreen-exit-zone .exit-hint {
+        opacity: 0.7;
+        font-size: 12px;
+        padding: 5px 12px;
+    }
+}
+
 body.fullscreen .reader-container {
     margin-top: 0;
     margin-bottom: 0;
     padding: 20px;
     min-height: 100vh;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* 隐藏滚动条但保持滚动功能 */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+body.fullscreen .reader-container::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+body.fullscreen .reader-content {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* 隐藏滚动条但保持滚动功能 */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+body.fullscreen .reader-content::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
 }
 
 /* 响应式设计 */
@@ -756,7 +890,8 @@ body.fullscreen .reader-container {
     }
 
     .book-title {
-        font-size: 18px;
+        font-size: 16px;
+        max-width: 200px;
     }
 
     .reader-container {
