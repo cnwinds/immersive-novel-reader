@@ -110,25 +110,58 @@ body::-webkit-scrollbar-thumb:hover {
     justify-content: space-between;
     max-width: 800px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0;
     height: 60px;
-}
-
-.header-left, .header-right {
-    display: flex;
-    align-items: center;
     gap: 15px;
 }
 
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-shrink: 0;
+    padding-left: 0;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-shrink: 0;
+    padding-right: 0;
+}
+
+.header-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-width: 0;
+    gap: 2px;
+}
+
 .book-title {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 600;
     color: var(--text-primary);
     margin: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 300px;
+    max-width: 100%;
+    text-align: center;
+}
+
+.chapter-title {
+    font-size: 13px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    text-align: center;
+    display: block;
 }
 
 .menu-toggle, .search-btn, .settings-btn {
@@ -933,9 +966,21 @@ body.fullscreen .reader-content::-webkit-scrollbar {
         padding: 0 15px;
     }
 
+    .header-content {
+        gap: 10px;
+        padding: 0;
+    }
+
+    .header-left, .header-right {
+        gap: 10px;
+    }
+
     .book-title {
         font-size: 16px;
-        max-width: 200px;
+    }
+
+    .chapter-title {
+        font-size: 12px;
     }
 
     .reader-container {
@@ -995,7 +1040,11 @@ body.fullscreen .reader-content::-webkit-scrollbar {
 
 @media (max-width: 480px) {
     .book-title {
-        font-size: 16px;
+        font-size: 14px;
+    }
+
+    .chapter-title {
+        font-size: 11px;
     }
 
     .nav-btn span {
