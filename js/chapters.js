@@ -22,7 +22,7 @@ class ChapterManager {
     /**
      * 从文件内容中提取标题（第一行的 # 标题）
      * @param {string} content - 文件内容
-     * @returns {string} - 标题
+     * @returns {string} - 标题（格式化为"第X章 标题"）
      */
     extractTitle(content) {
         const lines = content.split('\n');
@@ -30,7 +30,16 @@ class ChapterManager {
             // 匹配 markdown 标题格式 # 标题
             const match = line.match(/^#\s+(.+)$/);
             if (match) {
-                return match[1].trim();
+                const originalTitle = match[1].trim();
+                // 匹配 "Episode-XX：标题" 或 "Episode-XX: 标题" 格式
+                const episodeMatch = originalTitle.match(/^Episode-(\d+)[：:]\s*(.+)$/);
+                if (episodeMatch) {
+                    const chapterNum = parseInt(episodeMatch[1], 10);
+                    const title = episodeMatch[2].trim();
+                    // 转换为"第X章 标题"格式
+                    return `第${chapterNum}章 ${title}`;
+                }
+                return originalTitle;
             }
         }
         return '未知章节';
@@ -257,9 +266,17 @@ class ChapterManager {
                 ? `<div class="chapter-summary">${chapter.summary}</div>` 
                 : '';
             
+            // 如果标题已经包含"第X章"，则只显示标题，不重复显示章节号
+            const titleText = chapter.title.includes('第') && chapter.title.includes('章') 
+                ? chapter.title 
+                : `${chapter.title}`;
+            const metaText = chapter.title.includes('第') && chapter.title.includes('章')
+                ? '' 
+                : `<div class="chapter-meta">第${chapter.order}章</div>`;
+            
             item.innerHTML = `
-                <div class="chapter-title">${chapter.title}</div>
-                <div class="chapter-meta">第 ${chapter.order} 章</div>
+                <div class="chapter-title">${titleText}</div>
+                ${metaText}
                 ${summaryHtml}
             `;
             

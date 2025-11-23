@@ -281,24 +281,8 @@ class Reader {
             const chapterNum = parseInt(episodeMatch[1], 10);
             const title = episodeMatch[2].trim();
             
-            // 转换为中文数字
-            const chineseNumbers = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
-            let chapterText = '';
-            
-            if (chapterNum <= 0) {
-                chapterText = chapterNum.toString();
-            } else if (chapterNum <= 10) {
-                chapterText = chineseNumbers[chapterNum];
-            } else if (chapterNum < 20) {
-                chapterText = '十' + (chapterNum > 10 ? chineseNumbers[chapterNum % 10] : '');
-            } else if (chapterNum < 100) {
-                const tens = Math.floor(chapterNum / 10);
-                const ones = chapterNum % 10;
-                chapterText = chineseNumbers[tens] + '十' + (ones > 0 ? chineseNumbers[ones] : '');
-            } else {
-                // 超过100章直接使用数字
-                chapterText = chapterNum.toString();
-            }
+            // 统一使用阿拉伯数字格式：第20章
+            const chapterText = chapterNum.toString();
             
             // 创建新的标题HTML，第一章使用角标样式
             h1.innerHTML = `<span class="chapter-number">第${chapterText}章</span> <span class="chapter-title-text">${title}</span>`;
