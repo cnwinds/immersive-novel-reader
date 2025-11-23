@@ -298,7 +298,7 @@ class Reader {
     }
 
     /**
-     * 格式化章节标题，将Episode格式转换为"第X章 标题"格式
+     * 格式化章节标题，只保留标题（去掉"第X章"）
      * @param {string} html - 解析后的HTML
      * @param {string} filename - 文件名
      * @returns {string} - 格式化后的HTML
@@ -317,14 +317,10 @@ class Reader {
         // 匹配 "Episode-XX：标题" 或 "Episode-XX: 标题" 格式
         const episodeMatch = originalTitle.match(/^Episode-(\d+)[：:]\s*(.+)$/);
         if (episodeMatch) {
-            const chapterNum = parseInt(episodeMatch[1], 10);
             const title = episodeMatch[2].trim();
             
-            // 统一使用阿拉伯数字格式：第20章
-            const chapterText = chapterNum.toString();
-            
-            // 创建新的标题HTML，第一章使用角标样式
-            h1.innerHTML = `<span class="chapter-number">第${chapterText}章</span> <span class="chapter-title-text">${title}</span>`;
+            // 只显示标题，去掉"第X章"
+            h1.innerHTML = `<span class="chapter-title-text">${title}</span>`;
         }
         
         return tempDiv.innerHTML;
@@ -412,6 +408,9 @@ class Reader {
             if (content) {
                 content.innerHTML = html;
                 content.style.display = 'block';
+                
+                // 添加章节进度条（在内容底部）
+                this.addChapterProgress(content);
             }
 
             // 更新导航按钮状态
@@ -748,6 +747,38 @@ class Reader {
     /**
      * 更新标题栏：当章节标题移出屏幕时，在标题栏显示章节信息
      */
+    /**
+     * 在章节内容底部添加进度条（显示当前章节数/总章节数）
+     * @param {HTMLElement} content - 章节内容容器
+     */
+    addChapterProgress(content) {
+        // 移除已存在的进度条
+        const existingProgress = content.querySelector('.chapter-progress-bar');
+        if (existingProgress) {
+            existingProgress.remove();
+        }
+        
+        // 获取章节信息
+        if (!this.chapterManager || !this.chapterManager.chapters.length) {
+            return;
+        }
+        
+        const totalChapters = this.chapterManager.chapters.length;
+        const currentChapter = this.chapterManager.currentIndex + 1; // 从1开始计数
+        const progress = (currentChapter / totalChapters) * 100;
+        
+        // 创建进度条容器
+        const progressBar = document.createElement('div');
+        progressBar.className = 'chapter-progress-bar';
+        progressBar.innerHTML = `
+            <div class="chapter-progress-fill" style="width: ${progress}%"></div>
+            <div class="chapter-progress-text">${currentChapter} / ${totalChapters}</div>
+        `;
+        
+        // 将进度条添加到内容底部
+        content.appendChild(progressBar);
+    }
+
     updateHeaderTitle() {
         const chapterContent = document.getElementById('chapterContent');
         if (!chapterContent) return;
@@ -768,14 +799,13 @@ class Reader {
         // 如果标题不在视口中，显示章节信息
         if (!isTitleVisible && h1Rect.top < 60) {
             // 标题已经滚动出屏幕上方
-            const chapterNumber = h1.querySelector('.chapter-number');
             const chapterTitleText = h1.querySelector('.chapter-title-text');
             
-            if (chapterNumber && chapterTitleText) {
-                const chapterInfo = `${chapterNumber.textContent} ${chapterTitleText.textContent}`;
-                bookTitle.textContent = `末世黎明 - ${chapterInfo}`;
+            if (chapterTitleText) {
+                const titleText = chapterTitleText.textContent.trim();
+                bookTitle.textContent = `末世黎明 - ${titleText}`;
                 // 同时更新页面标题
-                document.title = `${chapterInfo} - 末世黎明`;
+                document.title = `${titleText} - 末世黎明`;
             } else {
                 // 如果没有格式化标题，尝试从文本中提取
                 const titleText = h1.textContent.trim();
