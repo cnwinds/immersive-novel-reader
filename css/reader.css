@@ -108,6 +108,8 @@ body::-webkit-scrollbar-thumb:hover {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    max-width: 800px;
+    margin: 0 auto;
     padding: 0 20px;
     height: 60px;
 }
@@ -154,12 +156,13 @@ body::-webkit-scrollbar-thumb:hover {
     left: 0;
     right: 0;
     height: 3px;
-    padding: 0 20px;
     box-sizing: border-box;
 }
 
 .header-progress-bar {
-    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    width: calc(100% - 40px);
     height: 3px;
     background: var(--bg-tertiary);
     border-radius: 2px;
