@@ -158,13 +158,10 @@ body::-webkit-scrollbar-thumb:hover {
 
 /* 顶部章节进度条（整体进度） */
 .header-chapter-progress {
-    display: flex;
-    align-items: center;
-    gap: 8px;
     margin-top: -4px; /* 负margin，不增加行高 */
     margin-bottom: -4px; /* 负margin，不增加行高 */
     padding: 0;
-    height: 16px;
+    height: 3px;
 }
 
 .header-progress-bar {
