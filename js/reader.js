@@ -298,7 +298,7 @@ class Reader {
     }
 
     /**
-     * 格式化章节标题，只保留标题（去掉"第X章"）
+     * 格式化章节标题，添加"第X章"
      * @param {string} html - 解析后的HTML
      * @param {string} filename - 文件名
      * @returns {string} - 格式化后的HTML
@@ -317,10 +317,11 @@ class Reader {
         // 匹配 "Episode-XX：标题" 或 "Episode-XX: 标题" 格式
         const episodeMatch = originalTitle.match(/^Episode-(\d+)[：:]\s*(.+)$/);
         if (episodeMatch) {
+            const chapterNum = parseInt(episodeMatch[1], 10);
             const title = episodeMatch[2].trim();
             
-            // 只显示标题，去掉"第X章"
-            h1.innerHTML = `<span class="chapter-title-text">${title}</span>`;
+            // 显示"第X章 标题"
+            h1.innerHTML = `<span class="chapter-number">第${chapterNum}章</span> <span class="chapter-title-text">${title}</span>`;
         }
         
         return tempDiv.innerHTML;
@@ -418,8 +419,12 @@ class Reader {
             
             // 重置标题（章节加载后，标题在视口中，显示默认标题）
             const bookTitle = document.querySelector('.book-title');
+            const chapterTitle = document.getElementById('chapterTitle');
             if (bookTitle) {
                 bookTitle.textContent = '末世黎明';
+            }
+            if (chapterTitle) {
+                chapterTitle.textContent = '';
             }
             document.title = '末世黎明 - 沉浸式阅读器';
             
@@ -777,6 +782,7 @@ class Reader {
         if (!h1) return;
 
         const bookTitle = document.querySelector('.book-title');
+        const chapterTitle = document.getElementById('chapterTitle');
         if (!bookTitle) return;
 
         // 获取章节标题的位置信息
@@ -789,24 +795,45 @@ class Reader {
         // 如果标题不在视口中，显示章节信息
         if (!isTitleVisible && h1Rect.top < 60) {
             // 标题已经滚动出屏幕上方
+            const chapterNumber = h1.querySelector('.chapter-number');
             const chapterTitleText = h1.querySelector('.chapter-title-text');
             
-            if (chapterTitleText) {
+            if (chapterNumber && chapterTitleText) {
+                const numberText = chapterNumber.textContent.trim();
                 const titleText = chapterTitleText.textContent.trim();
-                bookTitle.textContent = `末世黎明 - ${titleText}`;
+                const fullTitle = `${numberText} ${titleText}`;
+                // 保持书名不变，在章节标题区域显示章节名
+                bookTitle.textContent = '末世黎明';
+                if (chapterTitle) {
+                    chapterTitle.textContent = fullTitle;
+                }
                 // 同时更新页面标题
+                document.title = `${fullTitle} - 末世黎明`;
+            } else if (chapterTitleText) {
+                // 只有标题文本，没有章节编号
+                const titleText = chapterTitleText.textContent.trim();
+                bookTitle.textContent = '末世黎明';
+                if (chapterTitle) {
+                    chapterTitle.textContent = titleText;
+                }
                 document.title = `${titleText} - 末世黎明`;
             } else {
                 // 如果没有格式化标题，尝试从文本中提取
                 const titleText = h1.textContent.trim();
                 if (titleText) {
-                    bookTitle.textContent = `末世黎明 - ${titleText}`;
+                    bookTitle.textContent = '末世黎明';
+                    if (chapterTitle) {
+                        chapterTitle.textContent = titleText;
+                    }
                     document.title = `${titleText} - 末世黎明`;
                 }
             }
         } else {
             // 标题在视口中，恢复默认标题
             bookTitle.textContent = '末世黎明';
+            if (chapterTitle) {
+                chapterTitle.textContent = '';
+            }
             document.title = '末世黎明 - 沉浸式阅读器';
         }
     }
