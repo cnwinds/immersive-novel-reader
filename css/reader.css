@@ -655,7 +655,6 @@ body::-webkit-scrollbar-thumb:hover {
     font-size: 1.8em;
     margin-bottom: 20px;
     color: var(--text-primary);
-    border-bottom: 2px solid var(--accent-color);
     padding-bottom: 10px;
     line-height: 1.4;
     display: flex;
