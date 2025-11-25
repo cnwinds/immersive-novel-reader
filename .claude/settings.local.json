@@ -4,7 +4,8 @@
       "Bash(git config --global --add safe.directory D:/ai-project)",
       "Skill(doomsday-skill)",
       "Bash(dir:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "SlashCommand(/check)"
     ],
     "deny": [],
     "ask": []

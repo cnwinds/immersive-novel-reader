@@ -27,12 +27,14 @@ class ChapterManager {
     extractTitle(content) {
         const lines = content.split('\n');
         for (const line of lines) {
-            // 匹配 markdown 标题格式 # 标题
-            const match = line.match(/^#\s+(.+)$/);
+            // 去除可能存在的 BOM 和行尾换行
+            const sanitizedLine = line.replace(/^\uFEFF/, '').trim();
+            // 匹配 markdown 标题格式 # / ## / ### 标题
+            const match = sanitizedLine.match(/^#{1,3}\s+(.+)$/);
             if (match) {
                 const originalTitle = match[1].trim();
                 // 匹配 "Episode-XX：标题" 或 "Episode-XX: 标题" 格式
-                const episodeMatch = originalTitle.match(/^Episode-(\d+)[：:]\s*(.+)$/);
+                const episodeMatch = originalTitle.match(/^Episode[-\s]*(\d+)\s*[：:\-]\s*(.+)$/i);
                 if (episodeMatch) {
                     const chapterNum = parseInt(episodeMatch[1], 10);
                     const title = episodeMatch[2].trim();
@@ -46,12 +48,42 @@ class ChapterManager {
     }
 
     /**
+     * 将目录中的 Episode 标题格式化为"第X章 标题"
+     * @param {string} rawTitle - 原始标题，如 "Episode 06 - 情绪点兑换物资"
+     * @param {number} order - 章节序号
+     * @returns {string} - 格式化后的标题
+     */
+    formatCatalogTitle(rawTitle, order) {
+        if (!rawTitle) return '未知章节';
+
+        // 如果原始标题已经包含“第X章”，直接返回
+        if (rawTitle.includes('第') && rawTitle.includes('章')) {
+            return rawTitle;
+        }
+
+        // 匹配 Episode 06 - 标题 / Episode-06：标题 等格式
+        const episodeMatch = rawTitle.match(/Episode[-\s]*(\d+)\s*[-：:]\s*(.+)/i);
+        if (episodeMatch) {
+            const chapterNum = parseInt(episodeMatch[1], 10) || order || '';
+            const titleText = episodeMatch[2].trim();
+            return chapterNum ? `第${chapterNum}章 ${titleText}` : titleText;
+        }
+
+        // 如果没有匹配到 Episode 格式但有序号，补全"第X章"
+        if (order) {
+            return `第${order}章 ${rawTitle}`;
+        }
+
+        return rawTitle;
+    }
+
+    /**
      * 尝试加载文件并获取信息
      * @param {string} filename - 文件名
      * @param {string} summary - 一句话剧情（可选）
      * @returns {Promise<Object|null>} - 章节信息或null（如果文件不存在）
      */
-    async tryLoadChapter(filename, summary = '') {
+    async tryLoadChapter(filename, summary = '', fallbackTitle = '', orderHint) {
         try {
             const response = await fetch(filename);
             if (!response.ok) {
@@ -59,7 +91,10 @@ class ChapterManager {
             }
             const content = await response.text();
             const order = this.extractOrder(filename);
-            const title = this.extractTitle(content);
+            let title = this.extractTitle(content);
+            if (title === '未知章节' && fallbackTitle) {
+                title = this.formatCatalogTitle(fallbackTitle, order || orderHint);
+            }
             
             return {
                 file: filename,
@@ -78,7 +113,7 @@ class ChapterManager {
      */
     async extractChapterInfoFromIndex() {
         try {
-            const indexResponse = await fetch('chapter_index.md');
+            const indexResponse = await fetch('catalog.md');
             if (!indexResponse.ok) {
                 return [];
             }
@@ -93,7 +128,7 @@ class ChapterManager {
                 const line = lines[i];
                 
                 // 匹配 Episode-数字：标题 格式的行
-                const episodeMatch = line.match(/###\s+Episode-(\d+)[：:](.+)/);
+                const episodeMatch = line.match(/###\s+Episode[-\s]*(\d+)\s*[-：:]\s*(.+)/i);
                 if (episodeMatch) {
                     const num = episodeMatch[1];
                     const title = episodeMatch[2].trim();
@@ -104,9 +139,9 @@ class ChapterManager {
                     let summary = '';
                     for (let j = i + 1; j < Math.min(i + 10, lines.length); j++) {
                         const nextLine = lines[j];
-                        const summaryMatch = nextLine.match(/\*\*一句话剧情\*\*[：:](.+)/);
+                        const summaryMatch = nextLine.match(/\*\*\s*(一句话剧情|一句话简介)\s*\*\*[：:](.+)/);
                         if (summaryMatch) {
-                            summary = summaryMatch[1].trim();
+                            summary = summaryMatch[2].trim();
                             break;
                         }
                         // 如果遇到下一个Episode，停止搜索
@@ -115,23 +150,23 @@ class ChapterManager {
                         }
                     }
                     
-                    // 构建可能的文件名（尝试多种格式）
-                    // 格式1: 直接使用标题（最常见）
-                    const safeTitle1 = title;
-                    // 格式2: 替换特殊字符为下划线
-                    const safeTitle2 = title.replace(/[\/\\:*?"<>|]/g, '_');
-                    // 格式3: 空格替换为下划线
-                    const safeTitle3 = title.replace(/\s+/g, '_');
-                    // 格式4: 空格和特殊字符都替换为下划线
-                    const safeTitle4 = title.replace(/\s+/g, '_').replace(/[\/\\:*?"<>|]/g, '_');
+                    // 构建基础文件名候选（仅按章节号）
+                    const baseFilenames = [
+                        `Episode-${numStr}.md`
+                    ];
+                    
+                    // 同时支持 episodes/ 子目录存放的情况
+                    const expandedFilenames = baseFilenames.map(name => {
+                        // 如果已经显式包含路径，则保持不变
+                        if (name.includes('/')) {
+                            return name;
+                        }
+                        // 默认只从 episodes/ 目录读取
+                        return `episodes/${name}`;
+                    });
                     
                     // 去重
-                    const filenames = [
-                        `Episode-${numStr}_${safeTitle1}.md`,
-                        `Episode-${numStr}_${safeTitle2}.md`,
-                        `Episode-${numStr}_${safeTitle3}.md`,
-                        `Episode-${numStr}_${safeTitle4}.md`
-                    ].filter((v, i, a) => a.indexOf(v) === i);
+                    const filenames = expandedFilenames.filter((v, i, a) => a.indexOf(v) === i);
                     
                     chapterInfos.push({
                         order: order,
@@ -156,7 +191,7 @@ class ChapterManager {
     async discoverChapters() {
         const chapters = [];
         
-        // 首先尝试从 chapter_index.md 中提取章节信息（包括文件名和一句话剧情）
+        // 首先尝试从 catalog.md 中提取章节信息（包括文件名和一句话剧情）
         const chapterInfos = await this.extractChapterInfoFromIndex();
         
         if (chapterInfos.length > 0) {
@@ -166,7 +201,7 @@ class ChapterManager {
                 // 尝试每个可能的文件名
                 for (const filename of info.filenames) {
                     try {
-                        const chapter = await this.tryLoadChapter(filename, info.summary);
+                        const chapter = await this.tryLoadChapter(filename, info.summary, info.title, info.order);
                         if (chapter) {
                             console.log(`成功加载章节: ${filename}`);
                             return chapter;

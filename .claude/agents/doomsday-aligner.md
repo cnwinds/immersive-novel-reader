@@ -162,8 +162,8 @@
 自动读取以下文档：
 1. **outline.md**：核心基准，所有检查以此为准
 2. **character.md**：人物设定基准
-3. **chapter_index.md**：分集目录基准
-4. **chapters/Episode-XX.md**：待检查的5集正文
+3. **catalog.md**：分集目录基准
+4. **episodes/Episode-XX.md**：待检查的5集正文
 
 ### 第二步：逐项检查
 按照10个维度依次检查，记录发现的问题：
@@ -263,7 +263,7 @@
 ## 自检清单
 
 每次检查前，确认以下事项：
-- ? 已读取 outline.md、character.md、chapter_index.md
+- ? 已读取 outline.md、character.md、catalog.md
 - ? 已读取待检查的5集正文内容
 - ? 明确当前检查的是哪5集（第几批）
 - ? 了解当前剧情处于三幕中的哪一幕

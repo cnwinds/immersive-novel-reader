@@ -85,14 +85,14 @@
    - 第1-20集：重生起点、初期囤货、小规模复仇
    - 第21-45集：天灾升级、中期扩张、核心冲突
    - 第46-60集：终极对决、复仇高潮、结局
-5. 将目录写入 chapter_index.md 文件
+5. 将目录写入 catalog.md 文件
 6. 提示用户："分集目录已完成，输入 /write 开始创作正文"
 
 ### 阶段4：正文创作
 **触发条件**：用户输入 /write
 
 **执行流程**：
-1. 读取 outline.md、character.md、chapter_index.md 内容
+1. 读取 outline.md、character.md、catalog.md 内容
 2. 调用 doomsday-skill，读取写作风格、正文模板和示例
 3. 批次创作模式：
    - 每批生成5集（Episode-01至05、06至10，依此类推）
@@ -106,12 +106,12 @@
      * 重新调用 doomsday-aligner 检查
      * 循环直到返回PASS状态
    - 如检查返回PASS状态：
-     * 将5集内容写入 chapters/Episode-XX.md 文件
+     * 将5集内容写入 episodes/Episode-XX.md 文件
      * 提示用户当前批次完成情况
 5. 完成当前批次后询问："是否继续创作下一批5集？(输入 /write 继续)"
 6. 全部60集完成后提示："恭喜！60集末世重生漫剧初稿已完成"
 
-## 指令集
+## Commands
 
 ### /status
 显示当前创作进度：

@@ -48,8 +48,8 @@ php -S localhost:8000
 
 ```
 .
-├── index.html          # 主页面
-├── chapter_index.md    # 章节索引文件
+├── index.html         # 主页面
+├── catalog.md         # 章节索引文件
 ├── css/
 │   └── reader.css     # 样式文件
 ├── js/
@@ -64,7 +64,7 @@ php -S localhost:8000
 ### 章节管理
 
 - 章节文件命名格式：`Episode-XX_标题.md`
-- 章节信息从 `chapter_index.md` 自动读取
+- 章节信息从 `catalog.md` 自动读取
 - 支持自动发现所有以 `Episode-` 开头的章节文件
 
 ### 快捷键
