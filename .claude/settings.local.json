@@ -3,7 +3,8 @@
     "allow": [
       "Bash(git config --global --add safe.directory D:/ai-project)",
       "Skill(doomsday-skill)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(test:*)"
     ],
     "deny": [],
     "ask": []
