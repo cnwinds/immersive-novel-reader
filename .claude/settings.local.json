@@ -2,10 +2,13 @@
   "permissions": {
     "allow": [
       "Bash(git config --global --add safe.directory D:/ai-project)",
-      "Skill(doomsday-skill)",
+      "Skill(romance-novel-skill)",
       "Bash(dir:*)",
       "Bash(test:*)",
-      "SlashCommand(/check)"
+      "SlashCommand(/check)",
+      "Bash(findstr:*)",
+      "Bash(git checkout -b sonnet)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
