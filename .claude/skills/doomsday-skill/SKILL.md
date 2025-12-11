@@ -8,14 +8,17 @@
 doomsday-skill/
 ├── SKILL.md                           # 当前文件，技能包核心配置
 ├── doomsday-outline-method.md         # 大纲创作方法论
+├── doomsday-storyboard-method.md      # 分镜脚本创作方法论
 ├── doomsday-output-style.md           # 写作风格定义
 ├── templates/                         # 文档格式模板
 │   ├── doomsday-outline-template.md
+│   ├── doomsday-storyboard-template.md
 │   ├── doomsday-character-template.md
 │   ├── doomsday-chapter-index-template.md
 │   └── doomsday-chapter-template.md
 └── examples/                          # 创作示例
     ├── outline-example.md
+    ├── storyboard-example.md
     ├── character-example.md
     ├── catalog-example.md
     └── chapter-example.md
@@ -28,6 +31,7 @@ doomsday-skill/
 4. **单集叙事结构**：起承转钩的500-800字标准格式
 5. **视觉化表达**：适合漫画分镜的画面感和动作描写
 6. **人物塑造体系**：主角-炮灰反派-前世仇人-终极boss的层级设计
+7. **AI分镜脚本创作**：支持生成文生图和图生视频提示词，角色一致性控制
 
 ## 调用方式
 主Agent在不同创作阶段会自动调用对应资源：
@@ -50,12 +54,18 @@ doomsday-skill/
 - 读取 templates/doomsday-chapter-template.md 获取格式规范
 - 读取 examples/chapter-example.md 学习优秀范例
 
+**分镜脚本阶段**：
+- 读取 doomsday-storyboard-method.md 获取分镜创作方法论
+- 读取 templates/doomsday-storyboard-template.md 获取格式规范
+- 读取 examples/storyboard-example.md 学习优秀范例
+
 ## 执行流程
 1. 主Agent识别当前创作阶段
 2. 自动调用对应的方法论、模板、示例文件
 3. 基于skill提供的专业知识进行内容创作
 4. 严格遵循模板格式输出结果
 5. 正文阶段完成后触发质量检查
+6. 支持分镜脚本生成，将正文转化为可视化分镜
 
 ## 适用场景
 - 末世重生题材漫剧剧本创作
@@ -63,13 +73,17 @@ doomsday-skill/
 - 囤货复仇双线叙事
 - 天灾升级体系构建
 - 快节奏爽文创作
+- AI辅助分镜脚本创作
+- 文生图+图生视频工作流
+- 角色一致性控制
 
 ## Commands
 
 ### /status
 显示当前创作进度：
-- 已完成的阶段（大纲/人物/目录/正文）
+- 已完成的阶段（大纲/人物/目录/正文/分镜）
 - 正文创作进度（已完成X/60集）
+- 分镜脚本完成数量
 - 下一步操作建议
 
 ### /outline
@@ -79,12 +93,19 @@ doomsday-skill/
 创建或修改人物小传（需要先完成大纲）
 
 ### /catalog
-生成或修改分集目录（需要先完成大纲和人物）
+生成分集目录（需要先完成大纲和人物）
 
 ### /write
 开始或继续正文创作（需要先完成大纲、人物、目录）
 - 首次调用从Episode-01开始
 - 后续调用从最后完成的集数继续
+
+### /storyboard
+为指定剧集生成分镜脚本（需要先完成正文）
+- 支持按集生成（Episode-XX）
+- 支持批量生成（连续剧集）
+- 自动生成角色一致性控制的提示词
+- 输出格式：Markdown表格（镜头|时长|场景|文生图|图生视频|备注）
 
 ### /check
 手动触发一致性检查（检查最近完成的5集内容）
@@ -108,3 +129,10 @@ doomsday-skill/
 - 检查-修改闭环：如果一致性检查失败，必须调用skill修改后重新检查，直到通过
 - 不主动偏离大纲：正文创作过程中，如发现与大纲冲突的情况，优先以大纲为准
 - 批次创作模式：每批5集完成后必须进行质量检查，通过后才能写入文件并继续下一批
+- 分镜脚本创作规则：
+  - 严格时长控制：每个镜头5-10秒，超时必须拆分
+  - 角色一致性：每个分镜必须完整重复主角外观描述
+  - 视角适配：根据自拍/第一人称/第三人称选择合适景别
+  - 场景切换：每组镜头组建议在不同空间，避免布局冲冲突
+  - 提示词格式：文生图（景别+角色+主体+环境+氛围+风格+光影），图生视频（镜头+运动+行为+背景+环境）
+- 分镜质量保障：必须先完成正文创作，才可能确保剧情完整准确

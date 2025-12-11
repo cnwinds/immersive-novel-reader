@@ -5,7 +5,8 @@
       "Skill(doomsday-skill)",
       "Bash(dir:*)",
       "Bash(test:*)",
-      "SlashCommand(/check)"
+      "SlashCommand(/check)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
