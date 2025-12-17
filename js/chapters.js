@@ -32,30 +32,16 @@ class ChapterManager {
         
         const lines = content.split('\n');
         for (const line of lines) {
-<<<<<<< HEAD
             // 去除可能存在的 BOM 和行尾换行
             const sanitizedLine = line.replace(/^\uFEFF/, '').trim();
             // 匹配 markdown 标题格式 # / ## / ### 标题
             const match = sanitizedLine.match(/^#{1,3}\s+(.+)$/);
-=======
-            // 匹配 markdown 标题格式 # 标题（# 后面可以有或没有空格）
-            // 处理 Windows 换行符 \r\n，去除行尾的 \r 和空格
-            const cleanLine = line.replace(/\r$/, '').trim();
-            if (!cleanLine) continue; // 跳过空行
-            
-            const match = cleanLine.match(/^#\s*(.+)$/);
->>>>>>> df5392b (淇绔犺妭鏍囬鏄剧ず鍜屽皬璇村悕绉伴棶棰橈紝浼樺寲闃呰甯冨眬)
             if (match) {
                 const originalTitle = match[1].trim();
                 console.log('extractTitle: 找到标题行:', originalTitle);
                 
                 // 匹配 "Episode-XX：标题" 或 "Episode-XX: 标题" 格式
-<<<<<<< HEAD
                 const episodeMatch = originalTitle.match(/^Episode[-\s]*(\d+)\s*[：:\-]\s*(.+)$/i);
-=======
-                // 支持中文冒号和英文冒号，以及可能的空格
-                const episodeMatch = originalTitle.match(/^Episode-(\d+)[：:]\s*(.+)$/);
->>>>>>> df5392b (淇绔犺妭鏍囬鏄剧ず鍜屽皬璇村悕绉伴棶棰橈紝浼樺寲闃呰甯冨眬)
                 if (episodeMatch) {
                     const chapterNum = parseInt(episodeMatch[1], 10);
                     const title = episodeMatch[2].trim();
@@ -82,7 +68,7 @@ class ChapterManager {
     formatCatalogTitle(rawTitle, order) {
         if (!rawTitle) return '未知章节';
 
-        // 如果原始标题已经包含“第X章”，直接返回
+        // 如果原始标题已经包含"第X章"，直接返回
         if (rawTitle.includes('第') && rawTitle.includes('章')) {
             return rawTitle;
         }
@@ -206,18 +192,7 @@ class ChapterManager {
                     });
                     
                     // 去重
-<<<<<<< HEAD
                     const filenames = expandedFilenames.filter((v, i, a) => a.indexOf(v) === i);
-=======
-                    // 尝试多种文件名格式，包括简单的 Episode-XX.md 格式
-                    const filenames = [
-                        `Episode-${numStr}.md`,  // 简单格式：Episode-01.md
-                        `Episode-${numStr}_${safeTitle1}.md`,
-                        `Episode-${numStr}_${safeTitle2}.md`,
-                        `Episode-${numStr}_${safeTitle3}.md`,
-                        `Episode-${numStr}_${safeTitle4}.md`
-                    ].filter((v, i, a) => a.indexOf(v) === i);
->>>>>>> df5392b (淇绔犺妭鏍囬鏄剧ず鍜屽皬璇村悕绉伴棶棰橈紝浼樺寲闃呰甯冨眬)
                     
                     chapterInfos.push({
                         order: order,
@@ -453,4 +428,3 @@ window.chapterManager = new ChapterManager();
 if (window.chapterManager) {
     console.log('章节管理器已创建，正在初始化...');
 }
-
