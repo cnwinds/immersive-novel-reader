@@ -25,26 +25,52 @@ class ChapterManager {
      * @returns {string} - 标题（格式化为"第X章 标题"）
      */
     extractTitle(content) {
+        if (!content || typeof content !== 'string') {
+            console.warn('extractTitle: 内容为空或格式错误');
+            return null; // 返回 null 而不是 '未知章节'，让调用者处理
+        }
+        
         const lines = content.split('\n');
         for (const line of lines) {
+<<<<<<< HEAD
             // 去除可能存在的 BOM 和行尾换行
             const sanitizedLine = line.replace(/^\uFEFF/, '').trim();
             // 匹配 markdown 标题格式 # / ## / ### 标题
             const match = sanitizedLine.match(/^#{1,3}\s+(.+)$/);
+=======
+            // 匹配 markdown 标题格式 # 标题（# 后面可以有或没有空格）
+            // 处理 Windows 换行符 \r\n，去除行尾的 \r 和空格
+            const cleanLine = line.replace(/\r$/, '').trim();
+            if (!cleanLine) continue; // 跳过空行
+            
+            const match = cleanLine.match(/^#\s*(.+)$/);
+>>>>>>> df5392b (淇绔犺妭鏍囬鏄剧ず鍜屽皬璇村悕绉伴棶棰橈紝浼樺寲闃呰甯冨眬)
             if (match) {
                 const originalTitle = match[1].trim();
+                console.log('extractTitle: 找到标题行:', originalTitle);
+                
                 // 匹配 "Episode-XX：标题" 或 "Episode-XX: 标题" 格式
+<<<<<<< HEAD
                 const episodeMatch = originalTitle.match(/^Episode[-\s]*(\d+)\s*[：:\-]\s*(.+)$/i);
+=======
+                // 支持中文冒号和英文冒号，以及可能的空格
+                const episodeMatch = originalTitle.match(/^Episode-(\d+)[：:]\s*(.+)$/);
+>>>>>>> df5392b (淇绔犺妭鏍囬鏄剧ず鍜屽皬璇村悕绉伴棶棰橈紝浼樺寲闃呰甯冨眬)
                 if (episodeMatch) {
                     const chapterNum = parseInt(episodeMatch[1], 10);
                     const title = episodeMatch[2].trim();
                     // 转换为"第X章 标题"格式
-                    return `第${chapterNum}章 ${title}`;
+                    const formattedTitle = `第${chapterNum}章 ${title}`;
+                    console.log('extractTitle: 提取到标题:', formattedTitle);
+                    return formattedTitle;
                 }
+                // 如果没有匹配到Episode格式，直接返回原始标题
+                console.log('extractTitle: 使用原始标题:', originalTitle);
                 return originalTitle;
             }
         }
-        return '未知章节';
+        console.warn('extractTitle: 未找到标题行，内容前100字符:', content.substring(0, 100));
+        return null; // 返回 null 表示提取失败
     }
 
     /**
@@ -85,24 +111,38 @@ class ChapterManager {
      */
     async tryLoadChapter(filename, summary = '', fallbackTitle = '', orderHint) {
         try {
-            const response = await fetch(filename);
+            // 如果文件名不包含路径，则从 episodes 文件夹读取
+            const filepath = filename.includes('/') ? filename : `episodes/${filename}`;
+            console.log(`tryLoadChapter: 尝试加载文件: ${filepath}`);
+            const response = await fetch(filepath);
             if (!response.ok) {
+                console.warn(`tryLoadChapter: 文件加载失败 ${filepath}, 状态码: ${response.status}`);
                 return null;
             }
             const content = await response.text();
+            if (!content || content.trim().length === 0) {
+                console.warn(`tryLoadChapter: 文件内容为空: ${filepath}`);
+                return null;
+            }
             const order = this.extractOrder(filename);
             let title = this.extractTitle(content);
             if (title === '未知章节' && fallbackTitle) {
                 title = this.formatCatalogTitle(fallbackTitle, order || orderHint);
             }
             
+            // 如果标题提取失败，使用默认格式
+            const finalTitle = title || `第${order}章`;
+            
+            console.log(`tryLoadChapter: 成功加载章节 ${filepath}, 标题: ${finalTitle}, 序号: ${order}`);
+            
             return {
-                file: filename,
-                title: title,
+                file: filepath,
+                title: finalTitle,
                 order: order,
                 summary: summary
             };
         } catch (error) {
+            console.error(`tryLoadChapter: 加载文件时出错 ${filename}:`, error);
             return null;
         }
     }
@@ -166,7 +206,18 @@ class ChapterManager {
                     });
                     
                     // 去重
+<<<<<<< HEAD
                     const filenames = expandedFilenames.filter((v, i, a) => a.indexOf(v) === i);
+=======
+                    // 尝试多种文件名格式，包括简单的 Episode-XX.md 格式
+                    const filenames = [
+                        `Episode-${numStr}.md`,  // 简单格式：Episode-01.md
+                        `Episode-${numStr}_${safeTitle1}.md`,
+                        `Episode-${numStr}_${safeTitle2}.md`,
+                        `Episode-${numStr}_${safeTitle3}.md`,
+                        `Episode-${numStr}_${safeTitle4}.md`
+                    ].filter((v, i, a) => a.indexOf(v) === i);
+>>>>>>> df5392b (淇绔犺妭鏍囬鏄剧ず鍜屽皬璇村悕绉伴棶棰橈紝浼樺寲闃呰甯冨眬)
                     
                     chapterInfos.push({
                         order: order,
@@ -239,10 +290,9 @@ class ChapterManager {
         for (let i = 1; i <= 99; i++) {
             const numStr = i.toString().padStart(2, '0');
             // 尝试常见的文件名模式
-            // 注意：由于不知道完整文件名，这个方法可能无法找到所有文件
-            // 但我们可以尝试一些常见的模式
+            // 首先尝试简单格式 Episode-XX.md
             chapterPromises.push(
-                this.tryLoadChapter(`Episode-${numStr}_*.md`).catch(() => null)
+                this.tryLoadChapter(`Episode-${numStr}.md`).catch(() => null)
             );
         }
         
@@ -301,13 +351,24 @@ class ChapterManager {
                 ? `<div class="chapter-summary">${chapter.summary}</div>` 
                 : '';
             
-            // 如果标题已经包含"第X章"，则只显示标题，不重复显示章节号
-            const titleText = chapter.title.includes('第') && chapter.title.includes('章') 
-                ? chapter.title 
-                : `${chapter.title}`;
-            const metaText = chapter.title.includes('第') && chapter.title.includes('章')
-                ? '' 
-                : `<div class="chapter-meta">第${chapter.order}章</div>`;
+            // 处理标题显示
+            let titleText = chapter.title;
+            let metaText = '';
+            
+            // 如果标题已经包含"第X章"，直接使用，不添加额外的章节号
+            if (titleText && titleText.includes('第') && titleText.includes('章')) {
+                metaText = '';
+            } else {
+                // 如果标题不包含章节号，添加章节号作为元信息
+                // 但主要显示标题文本
+                if (titleText && titleText.trim()) {
+                    metaText = `<div class="chapter-meta">第${chapter.order}章</div>`;
+                } else {
+                    // 如果标题为空，至少显示章节号
+                    titleText = `第${chapter.order}章`;
+                    metaText = '';
+                }
+            }
             
             item.innerHTML = `
                 <div class="chapter-title">${titleText}</div>

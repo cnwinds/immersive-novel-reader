@@ -629,7 +629,7 @@ body::-webkit-scrollbar-thumb:hover {
     padding: 40px 20px;
     min-height: calc(100vh - 140px);
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     /* 隐藏滚动条但保持滚动功能 */
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE and Edge */
@@ -641,7 +641,8 @@ body::-webkit-scrollbar-thumb:hover {
 
 .reader-content {
     width: 100%;
-    max-width: 800px;
+    max-width: 900px;
+    margin-left: 0;
     /* 隐藏滚动条但保持滚动功能 */
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE and Edge */
@@ -673,7 +674,7 @@ body::-webkit-scrollbar-thumb:hover {
 
 .chapter-content {
     background: var(--bg-secondary);
-    padding: 40px;
+    padding: 40px 60px;
     border-radius: 12px;
     box-shadow: 0 4px 20px var(--shadow);
     line-height: var(--line-height, 1.8);
@@ -686,6 +687,8 @@ body::-webkit-scrollbar-thumb:hover {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    /* 文本左对齐，段落两端对齐 */
+    text-align: left;
 }
 
 .chapter-content h1 {
@@ -938,6 +941,7 @@ body.fullscreen .reader-container {
     height: 100vh;
     overflow-y: auto;
     overflow-x: hidden;
+    justify-content: flex-start;
     /* 隐藏滚动条但保持滚动功能 */
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE and Edge */
@@ -985,11 +989,13 @@ body.fullscreen .reader-content::-webkit-scrollbar {
 
     .reader-container {
         padding: 20px 15px;
+        justify-content: flex-start;
     }
 
     .chapter-content {
         padding: 25px 20px;
         font-size: 16px;
+        text-align: left;
     }
     
     .chapter-content h1 {

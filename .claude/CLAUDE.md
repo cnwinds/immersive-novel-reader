@@ -8,26 +8,88 @@
 - 囤货+复仇双线爽点分布
 - 人物塑造与情感节奏
 
+## 项目文件清单
+
+### 核心文档（项目根目录）
+- `outline.md` - 故事大纲（包含三幕结构、天灾体系、金手指设定、爽点分布）
+- `characters.md` - 人物小传（包含主角、炮灰反派、前世仇人、终极boss、配角）
+- `catalog.md` - 分集目录（60集标题和一句话剧情）
+- `episodes/` - 正文目录（存放Episode-01.md至Episode-60.md）
+
+### 技能包文件（.claude/skills/doomsday-skill/）
+- `doomsday-outline-method.md` - 大纲创作方法论
+- `doomsday-output-style.md` - 写作风格指南
+- `templates/` - 文档模板目录
+  - `doomsday-outline-template.md` - 大纲模板
+  - `doomsday-character-template.md` - 人物模板
+  - `doomsday-chapter-index-template.md` - 目录模板
+  - `doomsday-chapter-template.md` - 正文模板
+- `examples/` - 示例文件目录
+  - `outline-example.md` - 大纲示例
+  - `character-example.md` - 人物示例
+  - `catalog-example.md` - 目录示例
+  - `chapter-example.md` - 正文示例
+
+### 子Agent文件（.claude/agents/）
+- `doomsday-aligner.md` - 一致性检查Agent
+
+### 命令文档（.claude/commands/）
+- `outline.md` - /outline命令说明
+- `character.md` - /character命令说明
+- `catalog.md` - /catalog命令说明
+- `write.md` - /write命令说明
+- `check.md` - /check命令说明
+- `status.md` - /status命令说明
+- `help.md` - /help命令说明
+
 ## Skill调用机制
-你配备了专业的 doomsday-skill 技能包，包含创作方法论、写作风格、文档模板和实战示例。在每个创作阶段，你需要自动调用对应资源：
 
-**大纲阶段**：
-- 调用 doomsday-outline-method.md（方法论）
-- 调用 templates/doomsday-outline-template.md（模板）
-- 调用 examples/outline-example.md（示例）
+### 调用方式
+技能包通过**文件读取**方式调用，而非函数调用。在每个创作阶段，需要按顺序读取对应文件：
 
-**人物阶段**：
-- 调用 templates/doomsday-character-template.md（模板）
-- 调用 examples/character-example.md（示例）
+**读取顺序**：
+1. 先读取方法论文件（了解创作原则）
+2. 再读取模板文件（了解格式要求）
+3. 最后读取示例文件（学习优秀范例）
 
-**目录阶段**：
-- 调用 templates/doomsday-chapter-index-template.md（模板）
-- 调用 examples/catalog-example.md（示例）
+### 大纲阶段调用流程
+1. 读取 `.claude/skills/doomsday-skill/doomsday-outline-method.md`（方法论）
+2. 读取 `.claude/skills/doomsday-skill/templates/doomsday-outline-template.md`（模板）
+3. 读取 `.claude/skills/doomsday-skill/examples/outline-example.md`（示例）
+4. 基于读取内容生成大纲
+5. 写入 `outline.md` 文件
 
-**正文阶段**：
-- 调用 doomsday-output-style.md（写作风格）
-- 调用 templates/doomsday-chapter-template.md（模板）
-- 调用 examples/chapter-example.md（示例）
+### 人物阶段调用流程
+1. 读取 `outline.md`（获取故事背景）
+2. 读取 `.claude/skills/doomsday-skill/templates/doomsday-character-template.md`（模板）
+3. 读取 `.claude/skills/doomsday-skill/examples/character-example.md`（示例）
+4. 基于读取内容生成人物小传
+5. 写入 `characters.md` 文件
+
+### 目录阶段调用流程
+1. 读取 `outline.md` 和 `characters.md`（获取设定）
+2. 读取 `.claude/skills/doomsday-skill/templates/doomsday-chapter-index-template.md`（模板）
+3. 读取 `.claude/skills/doomsday-skill/examples/catalog-example.md`（示例）
+4. 基于读取内容生成分集目录
+5. 写入 `catalog.md` 文件
+
+### 正文阶段调用流程
+1. 读取 `outline.md`、`characters.md`、`catalog.md`（获取设定和规划）
+2. 读取 `.claude/skills/doomsday-skill/doomsday-output-style.md`（写作风格）
+3. 读取 `.claude/skills/doomsday-skill/templates/doomsday-chapter-template.md`（模板）
+4. 读取 `.claude/skills/doomsday-skill/examples/chapter-example.md`（示例）
+5. 基于读取内容生成正文
+6. 写入 `episodes/Episode-XX.md` 文件
+
+### 子Agent调用机制
+**doomsday-aligner** 通过以下方式调用：
+1. 主Agent完成5集正文创作后，自动触发检查
+2. 读取 `.claude/agents/doomsday-aligner.md` 了解检查标准
+3. 读取 `outline.md`、`characters.md`、`catalog.md` 作为检查基准
+4. 读取待检查的5集正文文件
+5. 按照10个维度逐项检查
+6. 返回PASS或FAIL状态及详细报告
+7. 如果FAIL，主Agent根据报告修改内容后重新检查
 
 **分镜脚本阶段**：
 - 调用 doomsday-storyboard-method.md（分镜方法论）
@@ -65,57 +127,102 @@
 **触发条件**：用户输入 /character
 
 **执行流程**：
-1. 读取 outline.md 内容
-2. 调用 doomsday-skill，读取人物模板和示例
-3. 创建人物体系（必须包含以下层级）：
+1. 检查前置条件：确认 `outline.md` 文件存在，否则提示先完成大纲
+2. 读取 `outline.md` 内容
+3. 调用 doomsday-skill，按顺序读取：
+   - `.claude/skills/doomsday-skill/templates/doomsday-character-template.md`（模板）
+   - `.claude/skills/doomsday-skill/examples/character-example.md`（示例）
+4. 创建人物体系（必须包含以下层级）：
    - 主角（前世遭遇、重生优势、性格转变、成长路径）
    - 炮灰反派（3-5位，前世作恶、今世打脸节点）
    - 前世仇人（核心反派，前世如何害死主角、今世复仇计划）
    - 终极boss（隐藏敌人或最大威胁）
-4. 每个人物必须包含：姓名、身份、前世遭遇、今世走向、功能定位
-5. 将人物小传写入 character.md 文件
-6. 提示用户："人物小传已完成，输入 /catalog 生成分集目录"
+5. 每个人物必须包含：姓名、身份、前世遭遇、今世走向、功能定位
+6. 将人物小传写入 `characters.md` 文件
+7. 提示用户："人物小传已完成，输入 /catalog 生成分集目录"
 
 ### 阶段3：分集目录创建
 **触发条件**：用户输入 /catalog
 
 **执行流程**：
-1. 读取 outline.md 和 character.md 内容
-2. 调用 doomsday-skill，读取目录模板和示例
-3. 生成60集目录，每集包含：
+1. 检查前置条件：确认 `outline.md` 和 `characters.md` 文件存在，否则提示先完成前置步骤
+2. 读取 `outline.md` 和 `characters.md` 内容
+3. 调用 doomsday-skill，按顺序读取：
+   - `.claude/skills/doomsday-skill/templates/doomsday-chapter-index-template.md`（模板）
+   - `.claude/skills/doomsday-skill/examples/catalog-example.md`（示例）
+4. 生成60集目录，每集包含：
    - 集数编号（Episode-01 至 Episode-60）
    - 标题（概括核心情节，5-8字）
    - 一句话剧情（20-30字，采用"主角做了什么+遇到什么+达成什么效果"结构）
-4. 目录必须符合三幕式布局：
+5. 目录必须符合三幕式布局：
    - 第1-20集：重生起点、初期囤货、小规模复仇
    - 第21-45集：天灾升级、中期扩张、核心冲突
    - 第46-60集：终极对决、复仇高潮、结局
+<<<<<<< HEAD
 5. 将目录写入 catalog.md 文件
 6. 提示用户："分集目录已完成，输入 /write 开始创作正文"
+=======
+6. 将目录写入 `catalog.md` 文件
+7. 提示用户："分集目录已完成，输入 /write 开始创作正文"
+>>>>>>> df5392b (淇绔犺妭鏍囬鏄剧ず鍜屽皬璇村悕绉伴棶棰橈紝浼樺寲闃呰甯冨眬)
 
 ### 阶段4：正文创作
 **触发条件**：用户输入 /write
 
 **执行流程**：
+<<<<<<< HEAD
 1. 读取 outline.md、character.md、catalog.md 内容
 2. 调用 doomsday-skill，读取写作风格、正文模板和示例
 3. 批次创作模式：
+=======
+1. 检查前置条件：确认 `outline.md`、`characters.md`、`catalog.md` 文件存在，否则提示先完成前置步骤
+2. 确定写作进度：检查 `episodes/` 目录，查找已完成的集数，从最后完成的集数+1继续
+3. 读取设定文档：
+   - 读取 `outline.md`、`characters.md`、`catalog.md` 内容
+   - **必须读取前3集内容**（如有）：确保跨集连贯性
+     * 如果创作Episode-01至05，无需读取前集
+     * 如果创作Episode-06至10，必须读取Episode-03、04、05
+     * 如果创作Episode-11至15，必须读取Episode-08、09、10
+     * 以此类推，确保每批创作前都了解前3集的状态
+4. 调用 doomsday-skill，按顺序读取：
+   - `.claude/skills/doomsday-skill/doomsday-output-style.md`（写作风格）
+   - `.claude/skills/doomsday-skill/templates/doomsday-chapter-template.md`（模板）
+   - `.claude/skills/doomsday-skill/examples/chapter-example.md`（示例）
+5. 批次创作模式：
+>>>>>>> df5392b (淇绔犺妭鏍囬鏄剧ず鍜屽皬璇村悕绉伴棶棰橈紝浼樺寲闃呰甯冨眬)
    - 每批生成5集（Episode-01至05、06至10，依此类推）
+   - **每集创作前必须检查连贯性**：
+     * 第一集（如Episode-01、06、11等）：承接上一批最后一集的状态
+     * 后续集数：承接本批前一集的状态
+     * 确保：人物位置、情绪、身体状况、物资状态、时间推进、未解决的冲突等与上一集衔接
    - 每集500-800字，遵循"起承转钩"结构
+   - **"起"部分必须承接上一集结尾**：不能忽略上一集的悬念或状态
    - 严格遵循 doomsday-output-style.md 定义的视觉化、快节奏风格
-4. 质量检查环节（每批5集完成后自动触发）：
-   - 调用 doomsday-aligner subagent 进行一致性检查
-   - 检查10个维度：剧情进度、天灾数值、爽点分布、人物行为、时间线、伏笔、金手指规则、格式、风格、禁忌
+6. 质量检查环节（每批5集完成后自动触发）：
+   - 读取 `.claude/agents/doomsday-aligner.md` 了解检查标准
+   - 调用 doomsday-aligner 进行一致性检查（读取检查基准和待检查内容）
+   - **跨集连贯性检查**（重点）：
+     * 检查本批第一集是否与上一批最后一集状态衔接
+     * 检查本批内部5集之间的连贯性
+     * 检查人物状态、时间线、伏笔、未解决冲突的连续性
+     * 禁止出现：剧情跳跃、状态突变、伏笔遗忘、时间倒流
+   - 检查11个维度：跨集连贯性（最高优先级）、剧情进度、天灾数值、爽点分布、人物行为、时间线、伏笔、金手指规则、格式、风格、禁忌
    - 如检查返回FAIL状态：
-     * 调用 doomsday-skill 修改问题内容
+     * 根据检查报告修改问题内容，特别关注跨集连贯性问题
      * 重新调用 doomsday-aligner 检查
-     * 循环直到返回PASS状态
+     * 循环最多3次，如3次后仍FAIL，询问用户是否接受当前版本或重新创作该批次
    - 如检查返回PASS状态：
+<<<<<<< HEAD
      * 将5集内容写入 episodes/Episode-XX.md 文件
+=======
+     * 将5集内容写入 `episodes/Episode-XX.md` 文件
+>>>>>>> df5392b (淇绔犺妭鏍囬鏄剧ず鍜屽皬璇村悕绉伴棶棰橈紝浼樺寲闃呰甯冨眬)
      * 提示用户当前批次完成情况
-5. 完成当前批次后询问："是否继续创作下一批5集？(输入 /write 继续)"
-6. 全部60集完成后提示："恭喜！60集末世重生漫剧初稿已完成"
+7. 完成当前批次后继续下一个5集
+   - **下一批创作前**：必须重新读取前3集（包括刚完成的批次），确保连贯性
+8. 全部60集完成后提示："恭喜！60集末世重生漫剧初稿已完成"
 
+<<<<<<< HEAD
 ### 阶段5：分镜脚本创作
 **触发条件**：用户输入 /storyboard
 
@@ -140,6 +247,8 @@
 8. 将分镜脚本保存为 storyboards/storyboard-Episode-XX.md 文件
 9. 提示用户："分镜脚本已完成，可直接用于AI视频生成（文生图→图生视频）"
 
+=======
+>>>>>>> df5392b (淇绔犺妭鏍囬鏄剧ず鍜屽皬璇村悕绉伴棶棰橈紝浼樺寲闃呰甯冨眬)
 ## Commands
 
 ### /status
@@ -182,12 +291,56 @@
 2. **模板驱动**：所有输出严格遵循 templates/ 定义的格式
 3. **质量保障**：正文创作每批5集后自动触发一致性检查，确保不偏离大纲
 4. **上下文连贯**：每个阶段创作前读取已有文档，保持故事连贯性
+   - **跨集连贯性**：每集创作前必须读取前3集内容，确保剧情、人物状态、时间线、伏笔的连续性
+   - **禁止剧情跳跃**：不能出现上一集未解决的问题在下一集突然消失，或上一集未提及的事件在下一集突然出现
+   - **状态一致性**：人物状态（受伤、情绪、位置、物资等）必须与上一集结尾状态衔接
+   - **伏笔连贯性**：前集埋下的伏笔必须在合理范围内回收，不能遗忘或矛盾
+   - **时间线连贯**：每集的时间推进必须合理，不能出现时间倒流或突然跳跃
 5. **文档驱动**：通过文档而非对话记忆维护上下文，支持长期创作
 6. **固定结构**：60集固定结构，对应三幕式布局，不支持自定义集数
 7. **分镜质量保障**：严格时长控制（每镜头5-10秒）、角色一致性强制要求、视角适配规则
 
+## 错误处理机制
+
+### 文件读取失败
+- **情况**：读取必要文件时文件不存在或无法读取
+- **处理**：提示用户缺少哪个文件，说明需要先完成哪个前置步骤
+- **恢复**：用户完成前置步骤后，重新执行当前命令
+
+### 格式错误
+- **情况**：读取的文件格式不符合预期（如markdown格式错误）
+- **处理**：提示文件格式问题，建议用户检查文件或重新生成
+- **恢复**：用户修复文件后，重新执行当前命令
+
+### 检查循环失败
+- **情况**：一致性检查连续3次返回FAIL状态
+- **处理**：
+  1. 显示详细的问题报告
+  2. 询问用户选择：
+     - 选项A：接受当前版本（标记为"待优化"）
+     - 选项B：重新创作该批次
+     - 选项C：跳过该批次，继续下一批
+- **恢复**：根据用户选择执行相应操作
+
+### 用户中断创作
+- **情况**：用户在创作过程中中断（如关闭对话）
+- **处理**：
+  1. 已完成的批次已保存到文件，不会丢失
+  2. 下次调用 `/write` 时自动检测进度，从最后完成的集数继续
+  3. 调用 `/status` 可查看当前进度
+- **恢复**：用户重新开始后，系统自动从断点继续
+
+### 前置条件不满足
+- **情况**：执行命令时缺少必要的前置文件
+- **处理**：
+  1. 明确提示缺少哪个文件
+  2. 说明需要先执行哪个命令
+  3. 提供操作建议
+- **恢复**：用户完成前置步骤后，重新执行当前命令
+
 ## 注意事项
 
+<<<<<<< HEAD
 - 输入质量决定输出质量：用户在Q1-Q3提供的创意越详细，生成内容越贴合预期
 - AI生成的是初稿：需要人工润色才能达到投稿标准
 - 检查-修改闭环：如果一致性检查失败，必须调用skill修改后重新检查，直到通过
@@ -204,3 +357,17 @@
   - 剧本文件：episodes/Episode-XX.md
   - 分镜文件：storyboards/storyboard-Episode-XX.md
   - 一一对应关系，便于查找和管理
+=======
+- **输入质量决定输出质量**：用户在Q1-Q3提供的创意越详细，生成内容越贴合预期
+- **AI生成的是初稿**：需要人工润色才能达到投稿标准
+- **检查-修改闭环**：如果一致性检查失败，必须根据报告修改后重新检查，最多循环3次
+- **不主动偏离大纲**：正文创作过程中，如发现与大纲冲突的情况，优先以大纲为准
+- **批次创作模式**：每批5集完成后必须进行质量检查，通过后才能写入文件并继续下一批
+- **文件命名统一**：所有文件必须使用统一的命名规范（见"项目文件清单"）
+- **文档驱动**：通过文件维护上下文，支持长期创作和中断恢复
+- **跨集连贯性强制要求**：
+  - 每集创作前必须读取前3集，确保状态衔接
+  - 禁止出现剧情跳跃、状态突变、伏笔遗忘、时间倒流
+  - 跨集连贯性检查是最高优先级，任何不连贯都必须FAIL并修改
+  - 批次间连贯性（本批第一集与上一批最后一集）和批次内连贯性（本批5集之间）都必须检查
+>>>>>>> df5392b (淇绔犺妭鏍囬鏄剧ず鍜屽皬璇村悕绉伴棶棰橈紝浼樺寲闃呰甯冨眬)

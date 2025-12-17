@@ -15,11 +15,75 @@ class Reader {
         this.lastTapY = 0;
         this.doubleTapHandler = null;
         
+        // 小说名称（从文件中读取）
+        this.bookTitle = '认知病毒：记忆守护者'; // 默认值，会在init中更新
+        
         // 异步初始化
         this.init();
     }
 
+    /**
+     * 从文件中读取小说名称
+     * 优先从 catalog.md 读取，如果没有则从 outline.md 读取
+     * @returns {Promise<string>} 小说名称
+     */
+    async loadBookTitle() {
+        try {
+            // 优先尝试从 catalog.md 读取
+            const catalogResponse = await fetch('catalog.md');
+            if (catalogResponse.ok) {
+                const catalogContent = await catalogResponse.text();
+                // 匹配格式：# 分集目录：小说名称
+                const catalogMatch = catalogContent.match(/^#\s*分集目录[：:]\s*(.+)$/m);
+                if (catalogMatch && catalogMatch[1]) {
+                    const title = catalogMatch[1].trim();
+                    console.log('从 catalog.md 读取到小说名称:', title);
+                    return title;
+                }
+            }
+        } catch (error) {
+            console.warn('读取 catalog.md 失败:', error);
+        }
+        
+        try {
+            // 如果 catalog.md 读取失败，尝试从 outline.md 读取
+            const outlineResponse = await fetch('outline.md');
+            if (outlineResponse.ok) {
+                const outlineContent = await outlineResponse.text();
+                // 匹配格式：- **故事标题**：小说名称
+                const outlineMatch = outlineContent.match(/\*\*故事标题\*\*[：:]\s*(.+)/);
+                if (outlineMatch && outlineMatch[1]) {
+                    const title = outlineMatch[1].trim();
+                    console.log('从 outline.md 读取到小说名称:', title);
+                    return title;
+                }
+            }
+        } catch (error) {
+            console.warn('读取 outline.md 失败:', error);
+        }
+        
+        // 如果都读取失败，返回默认值
+        console.warn('无法从文件中读取小说名称，使用默认值');
+        return '认知病毒：记忆守护者';
+    }
+
+    /**
+     * 更新页面中所有显示小说名称的地方
+     */
+    updateBookTitle() {
+        const bookTitleElement = document.querySelector('.book-title');
+        if (bookTitleElement) {
+            bookTitleElement.textContent = this.bookTitle;
+        }
+        document.title = `${this.bookTitle} - 沉浸式阅读器`;
+    }
+
     async init() {
+        // 首先加载小说名称
+        this.bookTitle = await this.loadBookTitle();
+        // 更新页面标题和显示的小说名称
+        this.updateBookTitle();
+        
         this.setupEventListeners();
         this.applySettings();
         // 等待章节管理器初始化完成
@@ -421,12 +485,12 @@ class Reader {
             const bookTitle = document.querySelector('.book-title');
             const chapterTitle = document.getElementById('chapterTitle');
             if (bookTitle) {
-                bookTitle.textContent = '末世黎明';
+                bookTitle.textContent = this.bookTitle;
             }
             if (chapterTitle) {
                 chapterTitle.textContent = '';
             }
-            document.title = '末世黎明 - 沉浸式阅读器';
+            document.title = `${this.bookTitle} - 沉浸式阅读器`;
             
             // 更新章节列表的选中状态（确保同步）
             if (this.chapterManager) {
@@ -803,38 +867,38 @@ class Reader {
                 const titleText = chapterTitleText.textContent.trim();
                 const fullTitle = `${numberText} ${titleText}`;
                 // 保持书名不变，在章节标题区域显示章节名
-                bookTitle.textContent = '末世黎明';
+                bookTitle.textContent = this.bookTitle;
                 if (chapterTitle) {
                     chapterTitle.textContent = fullTitle;
                 }
                 // 同时更新页面标题
-                document.title = `${fullTitle} - 末世黎明`;
+                document.title = `${fullTitle} - ${this.bookTitle}`;
             } else if (chapterTitleText) {
                 // 只有标题文本，没有章节编号
                 const titleText = chapterTitleText.textContent.trim();
-                bookTitle.textContent = '末世黎明';
+                bookTitle.textContent = this.bookTitle;
                 if (chapterTitle) {
                     chapterTitle.textContent = titleText;
                 }
-                document.title = `${titleText} - 末世黎明`;
+                document.title = `${titleText} - ${this.bookTitle}`;
             } else {
                 // 如果没有格式化标题，尝试从文本中提取
                 const titleText = h1.textContent.trim();
                 if (titleText) {
-                    bookTitle.textContent = '末世黎明';
+                    bookTitle.textContent = this.bookTitle;
                     if (chapterTitle) {
                         chapterTitle.textContent = titleText;
                     }
-                    document.title = `${titleText} - 末世黎明`;
+                    document.title = `${titleText} - ${this.bookTitle}`;
                 }
             }
         } else {
             // 标题在视口中，恢复默认标题
-            bookTitle.textContent = '末世黎明';
+            bookTitle.textContent = this.bookTitle;
             if (chapterTitle) {
                 chapterTitle.textContent = '';
             }
-            document.title = '末世黎明 - 沉浸式阅读器';
+            document.title = `${this.bookTitle} - 沉浸式阅读器`;
         }
     }
 }

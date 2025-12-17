@@ -5,8 +5,18 @@
       "Skill(doomsday-skill)",
       "Bash(dir:*)",
       "Bash(test:*)",
+<<<<<<< HEAD
       "SlashCommand(/check)",
       "Bash(git add:*)"
+=======
+      "Bash(wc:*)",
+      "Bash(expr:*)",
+      "Skill(document-skills:pdf)",
+      "Bash(ls:*)",
+      "Bash(findstr:*)",
+      "WebSearch",
+      "mcp__web-search-prime__webSearchPrime"
+>>>>>>> df5392b (淇绔犺妭鏍囬鏄剧ず鍜屽皬璇村悕绉伴棶棰橈紝浼樺寲闃呰甯冨眬)
     ],
     "deny": [],
     "ask": []
