@@ -2,7 +2,7 @@
 <html lang="zh-CN" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>认知病毒：记忆守护者 - 沉浸式阅读器</title>
     <!-- 引入适合小说阅读的开源字体 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,12 +19,12 @@
     <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
 </head>
 <body>
-    <!-- 顶部导航栏 -->
+    <!-- 顶部导航栏：与正文、底栏共用同一阅读栏宽 -->
     <header class="reader-header">
-        <div class="header-content">
+        <div class="reader-rail header-rail">
             <div class="header-left">
-                <button class="menu-toggle" id="menuToggle" aria-label="打开章节列表">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <button class="icon-btn menu-toggle" id="menuToggle" aria-label="打开章节列表">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 12h18M3 6h18M3 18h18"/>
                     </svg>
                 </button>
@@ -34,13 +34,13 @@
                 <span class="chapter-title" id="chapterTitle"></span>
             </div>
             <div class="header-right">
-                <button class="search-btn" id="searchBtn" aria-label="搜索">
+                <button class="icon-btn search-btn" id="searchBtn" aria-label="搜索">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"/>
                         <path d="m21 21-4.35-4.35"/>
                     </svg>
                 </button>
-                <button class="settings-btn" id="settingsBtn" aria-label="设置">
+                <button class="icon-btn settings-btn" id="settingsBtn" aria-label="设置">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="3"/>
                         <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3"/>
@@ -48,21 +48,24 @@
                 </button>
             </div>
         </div>
-        <!-- 章节进度条（整体进度）- 占据整个导航栏宽度 -->
-        <div class="header-chapter-progress">
-            <div class="header-progress-bar">
-                <div class="header-progress-fill" id="headerProgressFill"></div>
+        <div class="header-chapter-progress" aria-hidden="true">
+            <div class="reader-rail">
+                <div class="header-progress-bar">
+                    <div class="header-progress-fill" id="headerProgressFill"></div>
+                </div>
             </div>
         </div>
     </header>
 
     <!-- 搜索面板 -->
     <div class="search-panel" id="searchPanel">
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="搜索章节内容...">
-            <button class="search-close" id="searchClose">×</button>
+        <div class="reader-rail search-rail">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="搜索章节内容..." autocomplete="off">
+                <button class="search-close" id="searchClose" aria-label="关闭搜索">×</button>
+            </div>
+            <div class="search-results" id="searchResults"></div>
         </div>
-        <div class="search-results" id="searchResults"></div>
     </div>
 
     <!-- 设置面板 -->
@@ -129,9 +132,9 @@
     <!-- 遮罩层 -->
     <div class="overlay" id="overlay"></div>
 
-    <!-- 主阅读区域 -->
+    <!-- 主阅读区域：与顶栏、底栏同一栏宽 -->
     <main class="reader-container">
-        <div class="reader-content" id="readerContent">
+        <div class="reader-rail reader-content" id="readerContent">
             <div class="loading" id="loading">
                 <div class="spinner"></div>
                 <p>加载中...</p>
@@ -142,24 +145,26 @@
 
     <!-- 底部控制栏 -->
     <footer class="reader-footer">
-        <button class="nav-btn prev-btn" id="prevBtn" disabled>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M19 12H5M12 19l-7-7 7-7"/>
-            </svg>
-            上一章
-        </button>
-        <div class="progress-info">
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
+        <div class="reader-rail footer-rail">
+            <button class="nav-btn prev-btn" id="prevBtn" disabled>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                <span>上一章</span>
+            </button>
+            <div class="progress-info">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <span class="progress-text" id="progressText">0%</span>
             </div>
-            <span class="progress-text" id="progressText">0%</span>
+            <button class="nav-btn next-btn" id="nextBtn">
+                <span>下一章</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+            </button>
         </div>
-        <button class="nav-btn next-btn" id="nextBtn">
-            下一章
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
-        </button>
     </footer>
 
     <!-- 确保 marked.js 加载完成后再加载其他脚本 -->
