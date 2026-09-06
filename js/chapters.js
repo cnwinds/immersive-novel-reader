@@ -377,6 +377,32 @@ class ChapterManager {
             
             chapterList.appendChild(item);
         });
+
+        this.scrollActiveChapterIntoView();
+    }
+
+    /**
+     * 把当前章节滚到目录可视区域中间（只滚侧栏，避免带动页面）。
+     */
+    scrollActiveChapterIntoView() {
+        const sidebar = document.getElementById('chapterSidebar');
+        if (!sidebar) return;
+
+        const activeItem = sidebar.querySelector('.chapter-item.active');
+        if (!activeItem) return;
+
+        const header = sidebar.querySelector('.sidebar-header');
+        const headerHeight = header ? header.offsetHeight : 0;
+        const visibleHeight = sidebar.clientHeight - headerHeight;
+        const itemOffset = activeItem.getBoundingClientRect().top
+            - sidebar.getBoundingClientRect().top
+            + sidebar.scrollTop;
+        const target = itemOffset - headerHeight - visibleHeight / 2 + activeItem.offsetHeight / 2;
+
+        sidebar.scrollTo({
+            top: Math.max(0, target),
+            behavior: sidebar.classList.contains('active') ? 'smooth' : 'auto'
+        });
     }
 
     async loadChapter(index) {

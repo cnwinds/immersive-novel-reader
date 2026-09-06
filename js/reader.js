@@ -560,6 +560,12 @@ class Reader {
         
         sidebar.classList.toggle('active');
         overlay.classList.toggle('active');
+
+        if (sidebar.classList.contains('active') && this.chapterManager) {
+            requestAnimationFrame(() => {
+                this.chapterManager.scrollActiveChapterIntoView();
+            });
+        }
     }
 
     toggleSearch() {
