@@ -333,7 +333,11 @@ class Reader {
     async loadInitialChapter() {
         const progress = this.utils.loadProgress();
         if (progress) {
-            this.chapterManager.currentIndex = progress.chapterIndex;
+            const maxIndex = Math.max(0, this.chapterManager.chapters.length - 1);
+            this.chapterManager.currentIndex = Math.min(
+                Math.max(0, progress.chapterIndex || 0),
+                maxIndex
+            );
             // 更新章节列表的选中状态
             this.chapterManager.renderChapterList();
         }
@@ -814,11 +818,16 @@ class Reader {
         }
     }
 
+    getHeaderOffset() {
+        const header = document.querySelector('.reader-header');
+        if (header) {
+            return header.getBoundingClientRect().height;
+        }
+        return 56;
+    }
+
     /**
-     * 更新标题栏：当章节标题移出屏幕时，在标题栏显示章节信息
-     */
-    /**
-     * 更新顶部导航栏的章节进度条（显示整体进度，无数字）
+     * 更新顶部导航栏的章节进度条（显示全书进度）
      */
     updateChapterProgress() {
         // 获取章节信息
@@ -853,11 +862,12 @@ class Reader {
         const h1Rect = h1.getBoundingClientRect();
         const viewportHeight = window.innerHeight;
         
-        // 判断章节标题是否在视口中（考虑顶部导航栏的高度60px）
-        const isTitleVisible = h1Rect.top >= 60 && h1Rect.bottom <= viewportHeight;
+        // 判断章节标题是否在视口中（考虑顶部导航栏实际高度）
+        const headerOffset = this.getHeaderOffset();
+        const isTitleVisible = h1Rect.top >= headerOffset && h1Rect.bottom <= viewportHeight;
 
         // 如果标题不在视口中，显示章节信息
-        if (!isTitleVisible && h1Rect.top < 60) {
+        if (!isTitleVisible && h1Rect.top < headerOffset) {
             // 标题已经滚动出屏幕上方
             const chapterNumber = h1.querySelector('.chapter-number');
             const chapterTitleText = h1.querySelector('.chapter-title-text');

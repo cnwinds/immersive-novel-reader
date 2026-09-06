@@ -152,8 +152,12 @@ class ChapterManager {
             
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
-                
-                // 匹配 Episode-数字：标题 格式的行
+                // 跳过未解决的合并冲突标记，避免两套目录被同时解析
+                if (/^(<<<<<<<|=======|>>>>>>>)/.test(line.trim())) {
+                    continue;
+                }
+
+                // 匹配 Episode-数字：标题 / Episode 01 - 标题 等格式
                 const episodeMatch = line.match(/###\s+Episode[-\s]*(\d+)\s*[-：:]\s*(.+)/i);
                 if (episodeMatch) {
                     const num = episodeMatch[1];
@@ -171,7 +175,7 @@ class ChapterManager {
                             break;
                         }
                         // 如果遇到下一个Episode，停止搜索
-                        if (nextLine.match(/###\s+Episode-/)) {
+                        if (nextLine.match(/###\s+Episode[-\s]*\d+/i)) {
                             break;
                         }
                     }
@@ -203,7 +207,12 @@ class ChapterManager {
                 }
             }
             
-            return chapterInfos;
+            // 同一章节号只保留最后一次出现（后写的目录覆盖残留的旧目录）
+            const uniqueByOrder = new Map();
+            chapterInfos.forEach((info) => {
+                uniqueByOrder.set(info.order, info);
+            });
+            return Array.from(uniqueByOrder.values()).sort((a, b) => a.order - b.order);
         } catch (error) {
             console.warn('无法读取章节索引文件:', error);
         }
@@ -248,10 +257,21 @@ class ChapterManager {
             
             console.log(`成功加载 ${foundChapters.length} 个章节文件`);
             
-            // 按序号排序
-            foundChapters.sort((a, b) => a.order - b.order);
-            
-            return foundChapters;
+            // 按序号排序，并按文件路径去重，避免同一章出现两次
+            // （例如 catalog.md 残留两套目录时，会重复加载 episodes/Episode-XX.md）
+            const seenFiles = new Set();
+            const uniqueChapters = [];
+            foundChapters
+                .sort((a, b) => a.order - b.order)
+                .forEach((chapter) => {
+                    if (!chapter || seenFiles.has(chapter.file)) {
+                        return;
+                    }
+                    seenFiles.add(chapter.file);
+                    uniqueChapters.push(chapter);
+                });
+
+            return uniqueChapters;
         } else {
             console.warn('未从索引文件中找到章节信息');
         }
